@@ -1,1 +1,71 @@
+{% extends "base.html" %}
 
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="fas fa-home me-2"></i>Каталог товаров</h1>
+    <a href="{{ url_for('create_order') }}" class="btn btn-primary"><i class="fas fa-cart-plus me-2"></i>Оформить заказ</a>
+</div>
+
+<!-- Поиск -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('products') }}" class="row g-3">
+            <div class="col-md-8">
+                <input type="text" class="form-control" name="search" placeholder="Поиск товаров..." value="{{ search }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-outline-primary w-100"><i class="fas fa-search me-2"></i>Найти</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Товары -->
+<div class="row">
+    {% for product in products %}
+    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-box fa-3x gradient-text"></i>
+                </div>
+                <h5 class="card-title text-center">{{ product.name }}</h5>
+                <div class="text-center mb-3">
+                    {% if product.current_stock > 10 %}
+                    <span class="badge bg-success">В наличии</span>
+                    {% elif product.current_stock > 0 %}
+                    <span class="badge bg-warning">Мало</span>
+                    {% else %}
+                    <span class="badge bg-danger">Нет</span>
+                    {% endif %}
+                </div>
+                <div class="text-center mb-3">
+                    <strong class="h4">{{ "%.2f"|format(product.price) }} ₽</strong>
+                    <div class="text-muted small">за {{ product.unit }}</div>
+                </div>
+                <div class="small text-muted text-center mb-3">
+                    <div>SKU: {{ product.sku }}</div>
+                    {% if product.category %}<div>Категория: {{ product.category.name }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0 text-center">
+                {% if product.current_stock > 0 %}
+                <a href="{{ url_for('create_order') }}?product_id={{ product.id }}" class="btn btn-primary w-100">
+                    <i class="fas fa-cart-plus me-2"></i>Заказать
+                </a>
+                {% else %}
+                <button class="btn btn-outline-secondary w-100" disabled><i class="fas fa-times me-2"></i>Нет в наличии</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">Товары не найдены</h4>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
