@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ошибка - StockSync Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Стили из base.html */
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #5b21b6;
+            --primary-light: #8b5cf6;
+            --secondary: #db2777;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #0ea5e9;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+            --shadow-sm: 0 2px 12px rgba(124, 58, 237, 0.08);
+            --shadow-md: 0 8px 30px rgba(124, 58, 237, 0.12);
+            --shadow-lg: 0 20px 50px rgba(124, 58, 237, 0.18);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --transition-fast: 200ms ease;
+            --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --primary-light: #a78bfa;
+            --secondary: #f472b6;
+            --accent: #f9a8d4;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --info: #60a5fa;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-light: #334155;
+            --border-medium: #475569;
+            --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.35);
+            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.45);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background var(--transition-base);
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #0c1425 0%, var(--bg-primary) 100%);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-base);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .btn {
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            padding: 0.75rem 1.75rem;
+            border: 2px solid transparent;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(124, 58, 237, 0.35);
+        }
+
+        .btn-outline-secondary {
+            background: transparent;
+            border: 2px solid var(--text-muted);
+            color: var(--text-secondary);
+        }
+
+        .btn-outline-secondary:hover {
+            background: var(--text-muted);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .error-icon {
+            animation: errorPulse 2s infinite;
+        }
+
+        @keyframes errorPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-6 col-lg-5">
+                <div class="card border-0 shadow-lg fade-in-up">
+                    <div class="card-body p-4 p-md-5 text-center">
+                        <div class="mb-4">
+                            <div class="error-icon">
+                                <div class="rounded-circle p-4 d-inline-block" 
+                                     style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(248, 113, 113, 0.2));">
+                                    <i class="fas fa-exclamation-triangle fa-5x" style="color: var(--danger);"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h1 class="display-5 mb-3" style="color: var(--danger);">Ошибка</h1>
+                        <p class="lead mb-4" style="color: var(--text-secondary);">
+                            Произошла непредвиденная ошибка
+                        </p>
+                        
+                        <div class="card mb-4" style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1);">
+                            <div class="card-body text-start">
+                                <h6 class="card-title mb-2" style="color: var(--danger);">
+                                    <i class="fas fa-bug me-2"></i>Что могло произойти?
+                                </h6>
+                                <ul class="small mb-0" style="color: var(--text-secondary);">
+                                    <li>Страница была перемещена или удалена</li>
+                                    <li>Временные проблемы с сервером</li>
+                                    <li>Ошибка в вашем запросе</li>
+                                    <li>Проблемы с подключением к интернету</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                                <i class="fas fa-home me-2"></i>На главную
+                            </a>
+                            <button onclick="history.back()" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Назад
+                            </button>
+                            <button onclick="location.reload()" class="btn btn-outline-primary">
+                                <i class="fas fa-redo me-2"></i>Обновить страницу
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <small class="text-muted">
+                                Если ошибка повторяется, пожалуйста, свяжитесь с поддержкой
+                            </small>
+                            <div class="mt-2">
+                                <a href="mailto:support@stocksync.pro" class="small">
+                                    <i class="fas fa-envelope me-1"></i>support@stocksync.pro
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Получаем информацию об ошибке из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorCode = urlParams.get('code') || '500';
+            const errorMessage = urlParams.get('message') || 'Внутренняя ошибка сервера';
+            
+            // Можем показывать больше деталей в консоли для разработчиков
+            console.error('Error Code:', errorCode);
+            console.error('Error Message:', errorMessage);
+            
+            // Если пользователь задержался на странице ошибки, предлагаем помощь
+            setTimeout(() => {
+                const helpDiv = document.createElement('div');
+                helpDiv.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                helpDiv.innerHTML = `
+                    <div class="toast fade show" role="alert" style="background: var(--bg-card); border: 1px solid var(--border-light);">
+                        <div class="toast-body">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle p-2 me-3" 
+                                     style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(96, 165, 250, 0.2));">
+                                    <i class="fas fa-question-circle" style="color: var(--info);"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">Нужна помощь?</div>
+                                    <div class="small text-muted">Мы готовы помочь решить проблему</div>
+                                </div>
+                                <button type="button" class="btn-close ms-3" data-bs-dismiss="toast"></button>
+                            </div>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-primary w-100" onclick="contactSupport()">
+                                    Связаться с поддержкой
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(helpDiv);
+            }, 10000);
+        });
+        
+        function contactSupport() {
+            const body = `Ошибка на странице: ${window.location.href}\n\nПожалуйста, опишите проблему:`;
+            window.open(`mailto:support@stocksync.pro?subject=Ошибка в StockSync Pro&body=${encodeURIComponent(body)}`, '_blank');
+        }
+        
+        // Отправляем информацию об ошибке в аналитику (если настроена)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'exception', {
+                description: 'Page error',
+                fatal: true
+            });
+        }
+    </script>
+</body>
+</html>

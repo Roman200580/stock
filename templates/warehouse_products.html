@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 gradient-text">
+        <i class="fas fa-boxes me-2"></i>Товары и остатки
+    </h1>
+    <a href="{{ url_for('stock_report') }}" class="btn btn-outline-primary">
+        <i class="fas fa-file-excel me-2"></i>Экспорт в Excel
+    </a>
+</div>
+
+<!-- Поиск и фильтры -->
+<div class="card border-0 shadow-sm mb-4 fade-in-up">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-search me-2"></i>Поиск и фильтрация</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="search" placeholder="Поиск по названию, SKU, штрих-коду..." 
+                       value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="category_id">
+                    <option value="">Все категории</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_id == category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="supplier_id">
+                    <option value="">Все поставщики</option>
+                    {% for supplier in suppliers %}
+                    <option value="{{ supplier.id }}" {% if supplier_id == supplier.id %}selected{% endif %}>
+                        {{ supplier.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Найти
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Карточки товаров -->
+<div class="row">
+    {% for product in products %}
+    <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="card h-100 fade-in-up" style="animation-delay: {{ loop.index * 100 }}ms">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h6 class="card-title mb-0 fw-bold">{{ product.name }}</h6>
+                    <span class="badge bg-{% if product.current_stock <= 3 %}danger{% elif product.current_stock <= product.min_stock %}warning{% else %}success{% endif %}">
+                        {{ product.current_stock }} {{ product.unit }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted d-block">SKU:</small>
+                    <code class="bg-secondary bg-opacity-10 p-1 rounded">{{ product.sku }}</code>
+                </div>
+                
+                {% if product.barcode %}
+                <div class="mb-3">
+                    <small class="text-muted d-block">Штрих-код:</small>
+                    <code class="bg-secondary bg-opacity-10 p-1 rounded">{{ product.barcode }}</code>
+                </div>
+                {% endif %}
+                
+                <div class="row g-2 mb-3">
+                    {% if product.category %}
+                    <div class="col-6">
+                        <small class="text-muted d-block">Категория:</small>
+                        <span class="fw-semibold">{{ product.category.name }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if product.location %}
+                    <div class="col-6">
+                        <small class="text-muted d-block">Место:</small>
+                        <span class="fw-semibold">{{ product.location }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <small class="text-muted d-block">Цена:</small>
+                        <span class="fw-bold text-primary">{{ "%.2f"|format(product.price) }} ₽</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Лимиты:</small>
+                        <span class="small">Мин: {{ product.min_stock }}<br>Макс: {{ product.max_stock }}</span>
+                    </div>
+                </div>
+                
+                {% if product.description %}
+                <div class="border-top pt-3">
+                    <small class="text-muted d-block mb-1">Описание:</small>
+                    <p class="small text-secondary mb-0">{{ product.description[:100] }}{% if product.description|length > 100 %}...{% endif %}</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <div class="btn-group w-100">
+                    <a href="{{ url_for('receive_goods') }}?product_id={{ product.id }}" 
+                       class="btn btn-outline-success">
+                        <i class="fas fa-arrow-down me-1"></i>Принять
+                    </a>
+                    <a href="{{ url_for('ship_goods') }}?product_id={{ product.id }}" 
+                       class="btn btn-outline-danger">
+                        <i class="fas fa-arrow-up me-1"></i>Отгрузить
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="card border-0 shadow-sm text-center py-5">
+            <div class="card-body">
+                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted mb-3">Товары не найдены</h5>
+                {% if search or category_id or supplier_id %}
+                <a href="{{ url_for('products') }}" class="btn btn-primary">
+                    <i class="fas fa-times me-2"></i>Сбросить фильтры
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Индикатор низких остатков -->
+{% if low_stock %}
+<div class="alert alert-warning border-0 shadow-sm mt-4 fade-in-up">
+    <div class="d-flex align-items-center">
+        <div class="rounded-circle p-2 me-3 gradient-bg">
+            <i class="fas fa-exclamation-triangle text-white"></i>
+        </div>
+        <div class="flex-grow-1">
+            <strong>Внимание!</strong> Показаны только товары с низким запасом.
+        </div>
+        <a href="{{ url_for('products') }}" class="btn btn-sm btn-outline-primary">
+            Показать все товары
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Функции для страницы товаров
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализация быстрого поиска
+    initQuickSearch();
+    
+    // Инициализация горячих клавиш для страницы товаров
+    initProductHotkeys();
+    
+    // Загрузка дополнительных данных о товарах
+    loadProductStats();
+});
+
+function initQuickSearch() {
+    const searchInput = document.querySelector('input[name="search"]');
+    const categorySelect = document.querySelector('select[name="category_id"]');
+    const supplierSelect = document.querySelector('select[name="supplier_id"]');
+    
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                this.form.submit();
+            }
+        });
+    }
+}
+
+function initProductHotkeys() {
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+E или Cmd+E - экспорт в Excel
+        if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+            e.preventDefault();
+            document.querySelector('a[href*="stock_report"]')?.click();
+        }
+        
+        // Ctrl+F или Cmd+F - фокус на поиск
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            document.querySelector('input[name="search"]')?.focus();
+        }
+    });
+}
+
+async function loadProductStats() {
+    try {
+        // Здесь можно загрузить дополнительную статистику о товарах
+        const response = await fetch('/api/products/stats');
+        if (response.ok) {
+            const data = await response.json();
+            updateProductStats(data);
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки статистики товаров:', error);
+    }
+}
+
+function updateProductStats(stats) {
+    // Обновление статистики на странице
+    const statsElement = document.getElementById('productStats');
+    if (statsElement && stats) {
+        statsElement.innerHTML = `
+            <div class="row">
+                <div class="col-4 text-center">
+                    <h4 class="mb-1">${stats.total || 0}</h4>
+                    <small class="text-muted">Всего товаров</small>
+                </div>
+                <div class="col-4 text-center">
+                    <h4 class="mb-1 text-warning">${stats.low_stock || 0}</h4>
+                    <small class="text-muted">С низким запасом</small>
+                </div>
+                <div class="col-4 text-center">
+                    <h4 class="mb-1 text-danger">${stats.out_of_stock || 0}</h4>
+                    <small class="text-muted">Нет в наличии</small>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Быстрое редактирование количества товара
+function quickStockUpdate(productId, action) {
+    const quantity = prompt(`Введите количество для ${action === 'add' ? 'пополнения' : 'списания'}:`, '1');
+    
+    if (quantity && !isNaN(quantity) && parseInt(quantity) > 0) {
+        const formData = new FormData();
+        formData.append('product_id', productId);
+        formData.append('quantity', quantity);
+        formData.append('action', action);
+        
+        fetch('/api/products/quick-update', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(`Запас товара успешно обновлен`, 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification(data.error || 'Ошибка обновления', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            showNotification('Ошибка сервера', 'error');
+        });
+    }
+}
+</script>
+{% endblock %}

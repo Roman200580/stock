@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="fas fa-truck me-2"></i>Управление поставщиками</h1>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSupplierModal">
+        <i class="fas fa-plus me-2"></i>Добавить поставщика
+    </button>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="stat-card fade-in-up">
+            <div class="card-body text-center">
+                <h3 class="text-primary">{{ suppliers|length }}</h3>
+                <p class="text-muted mb-0">Всего поставщиков</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card fade-in-up" style="animation-delay: 100ms">
+            <div class="card-body text-center">
+                <h3 class="text-success">{{ suppliers|selectattr('is_active')|list|length }}</h3>
+                <p class="text-muted mb-0">Активных</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card fade-in-up" style="animation-delay: 200ms">
+            <div class="card-body text-center">
+                <h3 class="text-warning">{{ suppliers|rejectattr('is_active')|list|length }}</h3>
+                <p class="text-muted mb-0">Неактивных</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm fade-in-up">
+    <div class="card-header bg-white border-0">
+        <h5 class="card-title mb-0">Список поставщиков</h5>
+    </div>
+    <div class="card-body">
+        {% if suppliers %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Контактное лицо</th>
+                        <th>Контакты</th>
+                        <th>Адрес</th>
+                        <th>Товаров</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for supplier in suppliers %}
+                    <tr class="slide-in-right" style="animation-delay: {{ loop.index * 50 }}ms">
+                        <td>
+                            <strong>{{ supplier.name }}</strong>
+                            {% if not supplier.is_active %}
+                            <br><small class="text-danger"><i class="fas fa-ban"></i> Неактивен</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if supplier.contact_person %}
+                            {{ supplier.contact_person }}
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if supplier.email %}
+                            <div><i class="fas fa-envelope me-1"></i>{{ supplier.email }}</div>
+                            {% endif %}
+                            {% if supplier.phone %}
+                            <div><i class="fas fa-phone me-1"></i>{{ supplier.phone }}</div>
+                            {% endif %}
+                            {% if not supplier.email and not supplier.phone %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if supplier.address %}
+                            <small>{{ supplier.address[:50] }}{% if supplier.address|length > 50 %}...{% endif %}</small>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ supplier.products|length }}</span>
+                        </td>
+                        <td>
+                            {% if supplier.is_active %}
+                            <span class="badge bg-success">Активен</span>
+                            {% else %}
+                            <span class="badge bg-danger">Неактивен</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary" 
+                                        data-bs-toggle="modal" data-bs-target="#editSupplierModal{{ supplier.id }}"
+                                        title="Редактировать">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                
+                                <button type="button" class="btn btn-outline-{{ 'warning' if supplier.is_active else 'success' }}"
+                                        onclick="toggleSupplierStatus({{ supplier.id }}, {{ supplier.is_active|tojson }})"
+                                        title="{{ 'Деактивировать' if supplier.is_active else 'Активировать' }}">
+                                    {% if supplier.is_active %}
+                                    <i class="fas fa-ban"></i>
+                                    {% else %}
+                                    <i class="fas fa-check"></i>
+                                    {% endif %}
+                                </button>
+                                
+                                {% if supplier.products|length == 0 %}
+                                <button type="button" class="btn btn-outline-danger" 
+                                        onclick="deleteSupplier({{ supplier.id }}, '{{ supplier.name }}')"
+                                        title="Удалить">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% else %}
+                                <button class="btn btn-outline-secondary" disabled title="Есть связанные товары">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Поставщики не найдены</h5>
+            <p class="text-muted">Добавьте первого поставщика для организации поставок товаров</p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSupplierModal">
+                <i class="fas fa-plus me-2"></i>Добавить поставщика
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Модальное окно создания поставщика -->
+<div class="modal fade" id="createSupplierModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить поставщика</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_supplier') }}" id="createSupplierForm">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Название компании *</label>
+                            <input type="text" class="form-control" name="name" required
+                                   placeholder="ООО 'Название компании'">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Контактное лицо</label>
+                            <input type="text" class="form-control" name="contact_person" 
+                                   placeholder="Иванов Иван Иванович">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Телефон</label>
+                            <input type="tel" class="form-control" name="phone" 
+                                   placeholder="+7 (999) 123-45-67" id="phoneInput">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" 
+                                   placeholder="info@company.ru">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Адрес</label>
+                            <textarea class="form-control" name="address" rows="3" 
+                                      placeholder="Юридический адрес компании..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать поставщика</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Блок со статистикой -->
+{% if suppliers %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm fade-in-up">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Статистика по поставщикам
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for supplier in suppliers if supplier.products|length > 0 %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card border slide-in-right" style="animation-delay: {{ loop.index * 50 }}ms">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ supplier.name }}</h6>
+                                <div class="mb-2">
+                                    <small class="text-muted">Товаров: {{ supplier.products|length }}</small>
+                                </div>
+                                <div class="mb-2">
+                                    {% set total_stock = supplier.products|sum(attribute='current_stock') %}
+                                    <small class="text-muted">Общий остаток: {{ total_stock }} ед.</small>
+                                </div>
+                                <div class="mb-2">
+                                    {% set total_value = namespace(value=0) %}
+                                    {% for product in supplier.products %}
+                                        {% set total_value.value = total_value.value + (product.current_stock * (product.cost_price or 0)) %}
+                                    {% endfor %}
+                                    <small class="text-muted">Стоимость запасов: {{ "%.2f"|format(total_value.value) }} ₽</small>
+                                </div>
+                                {% if supplier.contact_person %}
+                                <div class="small text-muted">
+                                    Контакт: {{ supplier.contact_person }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12">
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Нет данных о товарах поставщиков
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function toggleSupplierStatus(supplierId, isActive) {
+    const action = isActive ? 'Деактивировать' : 'Активировать';
+    
+    if (confirm(`Вы уверены, что хотите ${action.toLowerCase()} этого поставщика?`)) {
+        fetch(`/admin/suppliers/${supplierId}/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                showNotification('Ошибка при изменении статуса', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Ошибка при изменении статуса', 'error');
+        });
+    }
+}
+
+function deleteSupplier(supplierId, supplierName) {
+    if (confirm(`Вы уверены, что хотите удалить поставщика "${supplierName}"?`)) {
+        fetch(`/admin/suppliers/${supplierId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                showNotification('Ошибка при удалении поставщика', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Ошибка при удалении поставщика', 'error');
+        });
+    }
+}
+
+// Форматирование номера телефона
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phoneInput');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                if (value[0] === '7' || value[0] === '8') {
+                    value = value.substring(1);
+                }
+                let formatted = '+7 (';
+                if (value.length > 0) formatted += value.substring(0, 3);
+                if (value.length > 3) formatted += ') ' + value.substring(3, 6);
+                if (value.length > 6) formatted += '-' + value.substring(6, 8);
+                if (value.length > 8) formatted += '-' + value.substring(8, 10);
+                e.target.value = formatted;
+            }
+        });
+    }
+    
+    // Инициализация тултипов
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

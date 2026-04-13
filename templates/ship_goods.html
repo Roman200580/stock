@@ -1,0 +1,534 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="fas fa-arrow-up me-2"></i>Отгрузка товара</h1>
+</div>
+<style>
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --light-color: #ecf0f1;
+    --dark-color: #2c3e50;
+    --border-radius: 12px;
+    --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+}
+
+/* Общие стили */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    line-height: 1.6;
+}
+
+/* Навигация */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.navbar-dark.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), #34495e) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Карточки */
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #fff, #f8f9fa);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+    padding: 1.25rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Кнопки */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.5rem 1.25rem;
+    transition: var(--transition);
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), #229954);
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning-color), #e67e22);
+    box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color), #c0392b);
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+/* Бейджи */
+.badge {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Таблицы */
+.table {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.table th {
+    background: linear-gradient(135deg, var(--primary-color), #34495e);
+    color: white;
+    border: none;
+    font-weight: 600;
+    padding: 1rem;
+}
+
+.table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+    transform: scale(1.01);
+    transition: var(--transition);
+}
+
+/* Формы */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Сайдбар */
+.sidebar {
+    min-height: calc(100vh - 76px);
+    background: linear-gradient(180deg, #2c3e50, #34495e);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link {
+    color: #bdc3c7 !important;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.nav-link:hover, .nav-link.active {
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+    color: white !important;
+    transform: translateX(5px);
+}
+
+/* Статистические карточки */
+.stats-card {
+    background: linear-gradient(135deg, #fff, #f8f9fa);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.stats-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card .card-body {
+    position: relative;
+    z-index: 1;
+}
+
+.stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+}
+
+/* Алерты */
+.alert {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    color: #721c24;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    color: #856404;
+}
+
+/* Модальные окна */
+.modal-content {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #fff, #f8f9fa);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+/* Иконки */
+.fas, .fab {
+    transition: var(--transition);
+}
+
+.btn:hover .fas, .btn:hover .fab {
+    transform: scale(1.1);
+}
+
+/* Кастомные классы */
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-color), #34495e);
+    color: white;
+    padding: 60px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="%23ffffff" opacity="0.1"><polygon points="0,0 1000,50 1000,100 0,100"/></svg>');
+    background-size: cover;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .card:hover {
+        transform: none;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .sidebar {
+        min-height: auto;
+    }
+}
+
+/* Утилиты */
+.text-gradient {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.border-gradient {
+    border: 2px solid;
+    border-image: linear-gradient(135deg, var(--secondary-color), var(--primary-color)) 1;
+}
+</style>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">Оформление отгрузки</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="shipmentForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Товар *</label>
+                            <select class="form-select" name="product_id" id="productSelect" required>
+                                <option value="">Выберите товар...</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}" 
+                                        data-stock="{{ product.current_stock }}"
+                                        data-unit="{{ product.unit }}"
+                                        {% if request.args.get('product_id')|int == product.id %}selected{% endif %}>
+                                    {{ product.name }} ({{ product.sku }}) - {{ product.current_stock }} {{ product.unit }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text" id="stockInfo">
+                                Выберите товар для отображения информации об остатках
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Количество *</label>
+                            <input type="number" class="form-control" name="quantity" id="quantityInput" min="1" required>
+                            <div class="form-text" id="quantityInfo"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Номер накладной</label>
+                            <input type="text" class="form-control" name="document_number" 
+                                   placeholder="Будет сгенерирован автоматически">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Дата операции</label>
+                            <input type="text" class="form-control" value="{{ now.strftime('%d.%m.%Y %H:%M') }}" readonly>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Примечание</label>
+                            <textarea class="form-control" name="notes" rows="3" 
+                                      placeholder="Основание для отгрузки, получатель..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-danger btn-lg" id="submitBtn">
+                                    <i class="fas fa-shipping-fast me-2"></i>Подтвердить отгрузку
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Информация о товаре -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Информация об остатках
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="productDetails" class="text-center text-muted">
+                    Выберите товар для просмотра информации
+                </div>
+            </div>
+        </div>
+
+        <!-- Быстрый доступ -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Быстрый доступ
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('orders') }}" class="btn btn-outline-info">
+                        <i class="fas fa-clipboard-list me-2"></i>Обработать заказы
+                    </a>
+                    <a href="{{ url_for('receive_goods') }}" class="btn btn-outline-success">
+                        <i class="fas fa-arrow-down me-2"></i>Перейти к приёмке
+                    </a>
+                    <a href="{{ url_for('products') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-boxes me-2"></i>Все товары
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Последние отгрузки -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Последние операции отгрузки
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Товар</th>
+                                <th>Количество</th>
+                                <th>Накладная</th>
+                                <th>Пользователь</th>
+                                <th>Примечание</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set recent_shipments = [] %}
+                            {% for operation in recent_operations if operation.type.value == 'shipment' %}
+                            {% if recent_shipments.append(operation) %}{% endif %}
+                            {% if loop.index <= 5 %}
+                            <tr>
+                                <td>{{ operation.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td>{{ operation.product.name }}</td>
+                                <td>
+                                    <span class="badge bg-danger">{{ -operation.quantity }} {{ operation.product.unit }}</span>
+                                </td>
+                                <td><code>{{ operation.document_number }}</code></td>
+                                <td>{{ operation.user.username }}</td>
+                                <td>
+                                    {% if operation.notes %}
+                                    <small class="text-muted">{{ operation.notes[:30] }}{% if operation.notes|length > 30 %}...{% endif %}</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-3">
+                                    Нет операций отгрузки
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productSelect = document.getElementById('productSelect');
+    const quantityInput = document.getElementById('quantityInput');
+    const stockInfo = document.getElementById('stockInfo');
+    const quantityInfo = document.getElementById('quantityInfo');
+    const productDetails = document.getElementById('productDetails');
+    const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('shipmentForm');
+
+    function updateProductInfo() {
+        const selectedOption = productSelect.options[productSelect.selectedIndex];
+        if (selectedOption.value) {
+            const stock = parseInt(selectedOption.getAttribute('data-stock'));
+            const unit = selectedOption.getAttribute('data-unit');
+            const productName = selectedOption.text.split(' - ')[0];
+            
+            stockInfo.textContent = `Доступно: ${stock} ${unit}`;
+            quantityInput.max = stock;
+            
+            // Обновление информации о товаре
+            productDetails.innerHTML = `
+                <h6>${productName}</h6>
+                <div class="mb-2">
+                    <span class="badge bg-${stock <= 3 ? 'danger' : stock <= 10 ? 'warning' : 'success'}">
+                        ${stock} ${unit}
+                    </span>
+                </div>
+                <small>Максимум для отгрузки: ${stock} ${unit}</small>
+            `;
+            
+            // Обновление информации о количестве
+            updateQuantityInfo();
+        } else {
+            stockInfo.textContent = 'Выберите товар для отображения информации об остатках';
+            productDetails.innerHTML = '<div class="text-muted">Выберите товар для просмотра информации</div>';
+            quantityInfo.textContent = '';
+        }
+    }
+
+    function updateQuantityInfo() {
+        const selectedOption = productSelect.options[productSelect.selectedIndex];
+        if (selectedOption.value) {
+            const stock = parseInt(selectedOption.getAttribute('data-stock'));
+            const unit = selectedOption.getAttribute('data-unit');
+            const quantity = parseInt(quantityInput.value) || 0;
+            
+            if (quantity > stock) {
+                quantityInfo.innerHTML = `<span class="text-danger">Недостаточно товара! Доступно: ${stock} ${unit}</span>`;
+                submitBtn.disabled = true;
+            } else if (quantity > 0) {
+                quantityInfo.innerHTML = `<span class="text-success">Будет отгружено: ${quantity} ${unit}</span>`;
+                submitBtn.disabled = false;
+            } else {
+                quantityInfo.textContent = `Введите количество для отгрузки`;
+                submitBtn.disabled = true;
+            }
+        }
+    }
+
+    productSelect.addEventListener('change', updateProductInfo);
+    quantityInput.addEventListener('input', updateQuantityInfo);
+
+    // Автозаполнение номера накладной
+    const docNumberInput = document.querySelector('input[name="document_number"]');
+    if (!docNumberInput.value) {
+        const now = new Date();
+        const timestamp = now.toISOString().slice(0,10).replace(/-/g, '') + 
+                         now.getHours().toString().padStart(2, '0') + 
+                         now.getMinutes().toString().padStart(2, '0');
+        docNumberInput.value = 'SHIP-' + timestamp;
+    }
+
+    // Инициализация при загрузке
+    updateProductInfo();
+});
+</script>
+{% endblock %}

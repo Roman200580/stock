@@ -1,0 +1,693 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-2">
+            <i class="fas fa-clipboard-check me-2 gradient-text"></i>
+            Инвентаризация: {{ inventory.name }}
+        </h1>
+        <p class="text-muted mb-0">
+            Статус: 
+            <span class="badge badge-primary 
+                {% if inventory.status.value == 'planned' %}bg-secondary
+                {% elif inventory.status.value == 'in_progress' %}bg-warning
+                {% elif inventory.status.value == 'completed' %}bg-success
+                {% else %}bg-danger{% endif %}">
+                {% if inventory.status.value == 'planned' %}Запланирована
+                {% elif inventory.status.value == 'in_progress' %}В процессе
+                {% elif inventory.status.value == 'completed' %}Завершена
+                {% else %}Отменена{% endif %}
+            </span>
+            • Создана: {{ inventory.created_at.strftime('%d.%m.%Y %H:%M') }}
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if inventory.status.value in ['planned', 'in_progress'] %}
+        <button type="button" class="btn btn-success" onclick="completeInventory()">
+            <i class="fas fa-check-circle me-2"></i>Завершить инвентаризацию
+        </button>
+        {% endif %}
+        <button type="button" class="btn btn-outline-primary" onclick="exportInventory()">
+            <i class="fas fa-file-export me-2"></i>Экспорт
+        </button>
+        <a href="{{ url_for('inventory_list') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Назад к списку
+        </a>
+    </div>
+</div>
+
+<!-- Статистика инвентаризации -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-card fade-in-up">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" 
+                     style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(219, 39, 119, 0.2));">
+                    <i class="fas fa-boxes-stacked fa-2x" style="color: var(--primary);"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0">{{ inventory.inventory_items|length }}</h4>
+                    <p class="text-muted mb-0 small">Всего товаров</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 100ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" 
+                     style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.2));">
+                    <i class="fas fa-check-circle fa-2x" style="color: var(--success);"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0">{{ inventory.inventory_items|selectattr('difference', 'equalto', 0)|list|length }}</h4>
+                    <p class="text-muted mb-0 small">Без расхождений</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 200ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" 
+                     style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.2));">
+                    <i class="fas fa-exclamation-triangle fa-2x" style="color: var(--warning);"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0">{{ inventory.inventory_items|selectattr('difference', '!=', 0)|list|length }}</h4>
+                    <p class="text-muted mb-0 small">С расхождениями</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 300ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" 
+                     style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(96, 165, 250, 0.2));">
+                    <i class="fas fa-money-bill-wave fa-2x" style="color: var(--info);"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0">{{ "%.2f"|format(inventory.total_difference) }} ₽</h4>
+                    <p class="text-muted mb-0 small">Сумма расхождений</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Фильтры и поиск -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-4 mb-3">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="inventorySearch" 
+                           placeholder="Поиск товаров...">
+                    <span class="input-group-text" style="background: var(--bg-tertiary); border-color: var(--border-light);">
+                        <i class="fas fa-search"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-8 mb-3">
+                <div class="d-flex flex-wrap gap-2 justify-content-end">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                                data-bs-toggle="dropdown">
+                            <i class="fas fa-filter me-2"></i>Фильтр по статусу
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="filterItems('all')">Все товары</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="filterItems('match')">Без расхождений</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="filterItems('mismatch')">С расхождениями</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="filterItems('excess')">Излишек</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="filterItems('shortage')">Недостача</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                                data-bs-toggle="dropdown">
+                            <i class="fas fa-sort me-2"></i>Сортировка
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="sortItems('name')">По названию</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="sortItems('difference')">По расхождению</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="sortItems('location')">По месту хранения</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="sortItems('system')">По системному остатку</a></li>
+                        </ul>
+                    </div>
+                    
+                    <button class="btn btn-outline-primary" onclick="scanBarcode()">
+                        <i class="fas fa-barcode me-2"></i>Сканировать
+                    </button>
+                    
+                    {% if inventory.status.value in ['planned', 'in_progress'] %}
+                    <button class="btn btn-outline-success" onclick="addProducts()">
+                        <i class="fas fa-plus me-2"></i>Добавить товары
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица товаров -->
+<div class="card border-0 shadow-sm fade-in-up">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Товары для инвентаризации</h5>
+        <div>
+            <span class="badge bg-secondary me-2" id="filteredCount">{{ inventory.inventory_items|length }}</span>
+            <span class="text-muted small">из {{ inventory.inventory_items|length }}</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('update_inventory_item', inventory_id=inventory.id) }}" 
+              id="inventoryForm">
+            <div class="table-container">
+                <table class="table table-hover mb-0" id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">Товар</th>
+                            <th>Системный остаток</th>
+                            <th>Фактический остаток</th>
+                            <th>Расхождение</th>
+                            <th>Сумма расхождений</th>
+                            <th>Статус</th>
+                            <th style="width: 50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventory.inventory_items %}
+                        <tr class="inventory-item" 
+                            data-name="{{ item.product.name.lower() }}"
+                            data-location="{{ item.product.location.lower() if item.product.location else '' }}"
+                            data-difference="{{ item.difference }}"
+                            data-status="{% if item.difference == 0 %}match{% elif item.difference > 0 %}excess{% else %}shortage{% endif %}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if item.product.image_filename %}
+                                    <img src="{{ url_for('static', filename='uploads/products/' + item.product.image_filename) }}" 
+                                         class="rounded me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="rounded-circle p-2 me-3" 
+                                         style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(219, 39, 119, 0.2));">
+                                        <i class="fas fa-box" style="color: var(--primary);"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ item.product.name }}</strong>
+                                        <div class="small text-muted">
+                                            {{ item.product.sku }}
+                                            {% if item.product.location %}
+                                            • <i class="fas fa-map-marker-alt"></i> {{ item.product.location }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle p-2 me-2" 
+                                         style="background: rgba(124, 58, 237, 0.1);">
+                                        <i class="fas fa-database" style="color: var(--primary);"></i>
+                                    </div>
+                                    <div>
+                                        <strong>{{ item.system_quantity }}</strong>
+                                        <div class="small text-muted">{{ item.product.unit }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="width: 200px;">
+                                <div class="input-group">
+                                    <input type="number" class="form-control actual-quantity" 
+                                           name="actual_quantity_{{ item.product_id }}"
+                                           value="{{ item.actual_quantity }}"
+                                           min="0"
+                                           step="0.001"
+                                           data-product-id="{{ item.product_id }}"
+                                           onchange="updateQuantity({{ item.product_id }}, this.value)"
+                                           {% if inventory.status.value == 'completed' %}disabled{% endif %}>
+                                    <span class="input-group-text">{{ item.product.unit }}</span>
+                                </div>
+                                {% if inventory.status.value in ['planned', 'in_progress'] %}
+                                <div class="d-flex gap-1 mt-1">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            onclick="adjustQuantity({{ item.product_id }}, -1)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            onclick="adjustQuantity({{ item.product_id }}, 1)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            onclick="setQuantity({{ item.product_id }}, {{ item.system_quantity }})">
+                                        <i class="fas fa-sync"></i>
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.difference > 0 %}
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle p-2 me-2" 
+                                         style="background: rgba(16, 185, 129, 0.1);">
+                                        <i class="fas fa-arrow-up" style="color: var(--success);"></i>
+                                    </div>
+                                    <div>
+                                        <strong style="color: var(--success);">+{{ item.difference }}</strong>
+                                        <div class="small text-muted">Излишек</div>
+                                    </div>
+                                </div>
+                                {% elif item.difference < 0 %}
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle p-2 me-2" 
+                                         style="background: rgba(239, 68, 68, 0.1);">
+                                        <i class="fas fa-arrow-down" style="color: var(--danger);"></i>
+                                    </div>
+                                    <div>
+                                        <strong style="color: var(--danger);">{{ item.difference }}</strong>
+                                        <div class="small text-muted">Недостача</div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle p-2 me-2" 
+                                         style="background: rgba(124, 58, 237, 0.1);">
+                                        <i class="fas fa-check" style="color: var(--primary);"></i>
+                                    </div>
+                                    <div>
+                                        <strong>0</strong>
+                                        <div class="small text-muted">Совпадает</div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set diff_value = item.difference * (item.product.cost_price or item.product.price) %}
+                                {% if diff_value != 0 %}
+                                <strong style="color: {% if diff_value > 0 %}var(--success){% else %}var(--danger){% endif %};">
+                                    {{ "%.2f"|format(diff_value) }} ₽
+                                </strong>
+                                {% else %}
+                                <span class="text-muted">0.00 ₽</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.difference == 0 %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Совпадает
+                                </span>
+                                {% elif item.difference > 0 %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-plus me-1"></i>Излишек
+                                </span>
+                                {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-minus me-1"></i>Недостача
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if inventory.status.value in ['planned', 'in_progress'] %}
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        onclick="removeItem({{ item.product_id }})">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+        
+        {% if inventory.notes %}
+        <div class="mt-4 pt-3 border-top">
+            <h6 class="mb-2"><i class="fas fa-sticky-note me-2"></i>Примечание к инвентаризации</h6>
+            <p class="text-muted mb-0">{{ inventory.notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Форма завершения инвентаризации -->
+<form method="POST" action="{{ url_for('complete_inventory', inventory_id=inventory.id) }}" 
+      id="completeForm" style="display: none;"></form>
+
+<!-- Форма удаления товара -->
+<form method="POST" action="{{ url_for('remove_inventory_item', inventory_id=inventory.id) }}" 
+      id="removeItemForm" style="display: none;">
+    <input type="hidden" name="product_id" id="removeProductId">
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализация поиска
+    const searchInput = document.getElementById('inventorySearch');
+    const inventoryItems = document.querySelectorAll('.inventory-item');
+    const filteredCount = document.getElementById('filteredCount');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            filterTable();
+        });
+    }
+    
+    // Автоматическое сохранение при изменении количества
+    setupAutoSave();
+    
+    // Отображение счетчика отфильтрованных товаров
+    updateFilteredCount();
+});
+
+function filterTable() {
+    const searchTerm = document.getElementById('inventorySearch').value.toLowerCase();
+    const items = document.querySelectorAll('.inventory-item');
+    let visibleCount = 0;
+    
+    items.forEach(item => {
+        const name = item.getAttribute('data-name');
+        const location = item.getAttribute('data-location');
+        const matchesSearch = name.includes(searchTerm) || location.includes(searchTerm);
+        
+        // Проверяем активные фильтры
+        const currentFilter = window.currentFilter || 'all';
+        const matchesFilter = filterByStatus(item, currentFilter);
+        
+        item.style.display = matchesSearch && matchesFilter ? '' : 'none';
+        if (matchesSearch && matchesFilter) visibleCount++;
+    });
+    
+    updateFilteredCount(visibleCount);
+}
+
+function filterItems(filter) {
+    window.currentFilter = filter;
+    const items = document.querySelectorAll('.inventory-item');
+    let visibleCount = 0;
+    
+    items.forEach(item => {
+        const matchesFilter = filterByStatus(item, filter);
+        item.style.display = matchesFilter ? '' : 'none';
+        if (matchesFilter) visibleCount++;
+    });
+    
+    updateFilteredCount(visibleCount);
+    showNotification(`Применен фильтр: ${getFilterName(filter)}`, 'info');
+}
+
+function filterByStatus(item, filter) {
+    if (filter === 'all') return true;
+    
+    const status = item.getAttribute('data-status');
+    const difference = parseInt(item.getAttribute('data-difference'));
+    
+    switch(filter) {
+        case 'match': return status === 'match';
+        case 'mismatch': return status !== 'match';
+        case 'excess': return difference > 0;
+        case 'shortage': return difference < 0;
+        default: return true;
+    }
+}
+
+function getFilterName(filter) {
+    const names = {
+        'all': 'Все товары',
+        'match': 'Без расхождений',
+        'mismatch': 'С расхождениями',
+        'excess': 'Излишек',
+        'shortage': 'Недостача'
+    };
+    return names[filter] || filter;
+}
+
+function sortItems(criteria) {
+    const tbody = document.querySelector('#inventoryTable tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr.inventory-item'));
+    
+    rows.sort((a, b) => {
+        let aValue, bValue;
+        
+        switch(criteria) {
+            case 'name':
+                aValue = a.getAttribute('data-name');
+                bValue = b.getAttribute('data-name');
+                return aValue.localeCompare(bValue);
+                
+            case 'difference':
+                aValue = Math.abs(parseInt(a.getAttribute('data-difference')));
+                bValue = Math.abs(parseInt(b.getAttribute('data-difference')));
+                return bValue - aValue;
+                
+            case 'location':
+                aValue = a.getAttribute('data-location') || '';
+                bValue = b.getAttribute('data-location') || '';
+                return aValue.localeCompare(bValue);
+                
+            case 'system':
+                // Здесь нужно получить системный остаток из DOM
+                return 0;
+                
+            default:
+                return 0;
+        }
+    });
+    
+    // Переставляем строки
+    rows.forEach(row => tbody.appendChild(row));
+    showNotification(`Сортировка: ${getSortName(criteria)}`, 'info');
+}
+
+function getSortName(criteria) {
+    const names = {
+        'name': 'По названию',
+        'difference': 'По расхождению',
+        'location': 'По месту хранения',
+        'system': 'По системному остатку'
+    };
+    return names[criteria] || criteria;
+}
+
+function updateQuantity(productId, value) {
+    const quantity = parseFloat(value);
+    if (isNaN(quantity) || quantity < 0) return;
+    
+    // Отправляем запрос на сервер
+    const form = document.getElementById('inventoryForm');
+    const input = form.querySelector(`input[name="actual_quantity_${productId}"]`);
+    
+    // В реальном приложении здесь будет AJAX запрос
+    showNotification('Количество обновлено', 'success');
+    
+    // Обновляем статус строки
+    updateItemStatus(productId, quantity);
+}
+
+function adjustQuantity(productId, delta) {
+    const input = document.querySelector(`input[name="actual_quantity_${productId}"]`);
+    if (!input) return;
+    
+    const currentValue = parseFloat(input.value) || 0;
+    const newValue = Math.max(0, currentValue + delta);
+    
+    input.value = newValue;
+    updateQuantity(productId, newValue);
+}
+
+function setQuantity(productId, quantity) {
+    const input = document.querySelector(`input[name="actual_quantity_${productId}"]`);
+    if (!input) return;
+    
+    input.value = quantity;
+    updateQuantity(productId, quantity);
+}
+
+function updateItemStatus(productId, actualQuantity) {
+    const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+    if (!row) return;
+    
+    const systemQuantity = parseInt(row.querySelector('.system-quantity')?.textContent || 0);
+    const difference = actualQuantity - systemQuantity;
+    
+    // Обновляем разницу
+    const diffElement = row.querySelector('.difference-display');
+    if (diffElement) {
+        diffElement.textContent = difference > 0 ? `+${difference}` : difference;
+        diffElement.style.color = difference > 0 ? 'var(--success)' : difference < 0 ? 'var(--danger)' : 'var(--primary)';
+    }
+    
+    // Обновляем статус
+    const statusElement = row.querySelector('.status-badge');
+    if (statusElement) {
+        if (difference === 0) {
+            statusElement.innerHTML = '<i class="fas fa-check me-1"></i>Совпадает';
+            statusElement.className = 'badge bg-success';
+        } else if (difference > 0) {
+            statusElement.innerHTML = '<i class="fas fa-plus me-1"></i>Излишек';
+            statusElement.className = 'badge bg-warning';
+        } else {
+            statusElement.innerHTML = '<i class="fas fa-minus me-1"></i>Недостача';
+            statusElement.className = 'badge bg-danger';
+        }
+    }
+    
+    // Обновляем атрибуты для фильтрации
+    row.setAttribute('data-difference', difference);
+    row.setAttribute('data-status', difference === 0 ? 'match' : difference > 0 ? 'excess' : 'shortage');
+}
+
+function removeItem(productId) {
+    if (confirm('Удалить товар из инвентаризации?')) {
+        document.getElementById('removeProductId').value = productId;
+        document.getElementById('removeItemForm').submit();
+    }
+}
+
+function completeInventory() {
+    if (confirm('Завершить инвентаризацию? После завершения будут автоматически скорректированы остатки товаров.')) {
+        const modalHtml = `
+            <div class="modal fade" id="completeModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header" style="background: linear-gradient(135deg, var(--success), #059669); color: white;">
+                            <h5 class="modal-title">
+                                <i class="fas fa-check-circle me-2"></i>Завершение инвентаризации
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Выберите действие для расхождений:</p>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="adjustment_type" 
+                                           value="auto" id="autoAdjust" checked>
+                                    <label class="form-check-label" for="autoAdjust">
+                                        Автоматически скорректировать остатки
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="adjustment_type" 
+                                           value="manual" id="manualAdjust">
+                                    <label class="form-check-label" for="manualAdjust">
+                                        Только отметить расхождения
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Это действие нельзя отменить. Все изменения будут сохранены в истории.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="button" class="btn btn-success" onclick="confirmComplete()">
+                                <i class="fas fa-check-circle me-2"></i>Завершить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Добавляем модальное окно
+        if (!document.getElementById('completeModal')) {
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+        
+        const modal = new bootstrap.Modal(document.getElementById('completeModal'));
+        modal.show();
+    }
+}
+
+function confirmComplete() {
+    const adjustmentType = document.querySelector('input[name="adjustment_type"]:checked').value;
+    
+    // Добавляем параметр к форме
+    const form = document.getElementById('completeForm');
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'adjustment_type';
+    input.value = adjustmentType;
+    form.appendChild(input);
+    
+    form.submit();
+}
+
+function exportInventory() {
+    showNotification('Экспорт инвентаризации начат...', 'info');
+    
+    // Эмуляция экспорта
+    setTimeout(() => {
+        const link = document.createElement('a');
+        link.href = `/inventory/{{ inventory.id }}/export`;
+        link.target = '_blank';
+        link.click();
+        
+        showNotification('Экспорт завершен. Файл скачивается...', 'success');
+    }, 1000);
+}
+
+function scanBarcode() {
+    // Эмуляция сканирования штрих-кода
+    showNotification('Режим сканирования активирован. Наведите камеру на штрих-код товара.', 'info');
+    
+    // В реальном приложении здесь будет интеграция со сканером
+    setTimeout(() => {
+        const barcode = prompt('Введите штрих-код товара:');
+        if (barcode) {
+            // Поиск товара по штрих-коду
+            showNotification(`Поиск товара по штрих-коду: ${barcode}`, 'info');
+        }
+    }, 500);
+}
+
+function addProducts() {
+    // Эмуляция добавления товаров
+    showNotification('Функция добавления товаров будет реализована в следующем обновлении', 'info');
+}
+
+function setupAutoSave() {
+    let saveTimeout;
+    
+    document.querySelectorAll('.actual-quantity').forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(saveTimeout);
+            
+            // Показываем индикатор сохранения
+            const productId = this.getAttribute('data-product-id');
+            const indicator = document.createElement('span');
+            indicator.className = 'badge bg-info ms-2';
+            indicator.innerHTML = '<i class="fas fa-save"></i>';
+            this.parentNode.appendChild(indicator);
+            
+            saveTimeout = setTimeout(() => {
+                updateQuantity(productId, this.value);
+                indicator.remove();
+            }, 1000);
+        });
+    });
+}
+
+function updateFilteredCount(count) {
+    const counter = document.getElementById('filteredCount');
+    if (!counter) return;
+    
+    const total = document.querySelectorAll('.inventory-item').length;
+    const visible = count !== undefined ? count : total;
+    
+    counter.textContent = visible;
+    counter.className = `badge ${visible === total ? 'bg-secondary' : 'bg-primary'}`;
+}
+
+function showNotification(message, type = 'info') {
+    // Реализация уведомлений
+    console.log(`${type}: ${message}`);
+    // В реальном приложении здесь будет красивый toast
+}
+</script>
+{% endblock %}

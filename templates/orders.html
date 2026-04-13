@@ -1,0 +1,576 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-clipboard-list me-2"></i>
+        {% if current_user.is_admin() or current_user.is_storekeeper() %}
+        Все заказы
+        {% else %}
+        Мои заказы
+        {% endif %}
+    </h1>
+    <a href="{{ url_for('create_order') }}" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-2"></i>Создать заказ
+    </a>
+</div>
+<style>
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --light-color: #ecf0f1;
+    --dark-color: #2c3e50;
+    --border-radius: 12px;
+    --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+}
+
+/* Общие стили */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    line-height: 1.6;
+}
+
+/* Навигация */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.navbar-dark.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), #34495e) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Карточки */
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #fff, #f8f9fa);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+    padding: 1.25rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Кнопки */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.5rem 1.25rem;
+    transition: var(--transition);
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), #229954);
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning-color), #e67e22);
+    box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color), #c0392b);
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+/* Бейджи */
+.badge {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Таблицы */
+.table {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.table th {
+    background: linear-gradient(135deg, var(--primary-color), #34495e);
+    color: white;
+    border: none;
+    font-weight: 600;
+    padding: 1rem;
+}
+
+.table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+    transform: scale(1.01);
+    transition: var(--transition);
+}
+
+/* Формы */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Сайдбар */
+.sidebar {
+    min-height: calc(100vh - 76px);
+    background: linear-gradient(180deg, #2c3e50, #34495e);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link {
+    color: #bdc3c7 !important;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.nav-link:hover, .nav-link.active {
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+    color: white !important;
+    transform: translateX(5px);
+}
+
+/* Статистические карточки */
+.stats-card {
+    background: linear-gradient(135deg, #fff, #f8f9fa);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.stats-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card .card-body {
+    position: relative;
+    z-index: 1;
+}
+
+.stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+}
+
+/* Алерты */
+.alert {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    color: #721c24;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    color: #856404;
+}
+
+/* Модальные окна */
+.modal-content {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #fff, #f8f9fa);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+/* Иконки */
+.fas, .fab {
+    transition: var(--transition);
+}
+
+.btn:hover .fas, .btn:hover .fab {
+    transform: scale(1.1);
+}
+
+/* Кастомные классы */
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-color), #34495e);
+    color: white;
+    padding: 60px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="%23ffffff" opacity="0.1"><polygon points="0,0 1000,50 1000,100 0,100"/></svg>');
+    background-size: cover;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .card:hover {
+        transform: none;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .sidebar {
+        min-height: auto;
+    }
+}
+
+/* Утилиты */
+.text-gradient {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.border-gradient {
+    border: 2px solid;
+    border-image: linear-gradient(135deg, var(--secondary-color), var(--primary-color)) 1;
+}
+</style>
+<!-- Фильтры -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-6">
+                <input type="text" class="form-control" placeholder="Поиск по номеру заказа или клиенту..." 
+                       id="searchInput">
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="statusFilter">
+                    <option value="">Все статусы</option>
+                    <option value="pending">Ожидает</option>
+                    <option value="approved">Подтвержден</option>
+                    <option value="completed">Выполнен</option>
+                    <option value="cancelled">Отменен</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                    <i class="fas fa-redo me-2"></i>Сбросить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица заказов -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0">
+        <h5 class="card-title mb-0">
+            Список заказов
+            <span class="badge bg-secondary ms-2" id="ordersCount">{{ orders|length }}</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-hover" id="ordersTable">
+                <thead>
+                    <tr>
+                        <th>№ Заказа</th>
+                        <th>Клиент</th>
+                        <th>Контакты</th>
+                        <th>Сумма</th>
+                        <th>Статус</th>
+                        <th>Дата создания</th>
+                        <th>Товары</th>
+                        {% if current_user.is_admin() or current_user.is_storekeeper() %}
+                        <th>Действия</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr class="order-row" data-status="{{ order.status.value }}">
+                        <td>
+                            <strong>{{ order.order_number }}</strong>
+                            {% if order.notes %}
+                            <br><small class="text-muted" title="{{ order.notes }}">
+                                <i class="fas fa-sticky-note"></i> {{ order.notes[:30] }}{% if order.notes|length > 30 %}...{% endif %}
+                            </small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ order.customer_name }}</strong>
+                            {% if current_user.is_admin() or current_user.is_storekeeper() %}
+                            <br><small class="text-muted">
+                                Создал: {{ order.user.username }}
+                            </small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if order.customer_email %}
+                            <div><i class="fas fa-envelope me-1"></i>{{ order.customer_email }}</div>
+                            {% endif %}
+                            {% if order.customer_phone %}
+                            <div><i class="fas fa-phone me-1"></i>{{ order.customer_phone }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ "%.2f"|format(order.total_amount) }} ₽</strong>
+                        </td>
+                        <td>
+                            {% if order.status.value == 'pending' %}
+                            <span class="badge bg-warning">Ожидает</span>
+                            {% elif order.status.value == 'approved' %}
+                            <span class="badge bg-info">Подтвержден</span>
+                            {% elif order.status.value == 'completed' %}
+                            <span class="badge bg-success">Выполнен</span>
+                            {% else %}
+                            <span class="badge bg-danger">Отменен</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ order.created_at.strftime('%d.%m.%Y') }}
+                            <br><small class="text-muted">{{ order.created_at.strftime('%H:%M') }}</small>
+                        </td>
+                        <td>
+                            {% for item in order.order_items %}
+                            <div class="small">
+                                {{ item.product.name }} - {{ item.quantity }} {{ item.product.unit }}
+                            </div>
+                            {% endfor %}
+                        </td>
+                        {% if current_user.is_admin() or current_user.is_storekeeper() %}
+                        <td>
+                            {% if order.status.value == 'pending' %}
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-success" 
+                                        onclick="updateOrderStatus({{ order.id }}, 'approved')"
+                                        title="Подтвердить заказ">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-outline-danger"
+                                        onclick="updateOrderStatus({{ order.id }}, 'cancelled')"
+                                        title="Отменить заказ">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            {% elif order.status.value == 'approved' %}
+                            <button class="btn btn-outline-success btn-sm"
+                                    onclick="updateOrderStatus({{ order.id }}, 'completed')"
+                                    title="Завершить заказ">
+                                <i class="fas fa-flag-checkered"></i> Завершить
+                            </button>
+                            {% else %}
+                            <span class="text-muted small">Завершен</span>
+                            {% endif %}
+                        </td>
+                        <td>
+    {% if order.status.value == 'pending' and (current_user.is_admin() or current_user.is_storekeeper()) %}
+    <form method="POST" action="{{ url_for('approve_order', order_id=order.id) }}" class="d-inline">
+        <button type="submit" class="btn btn-success btn-sm">Подтвердить</button>
+    </form>
+    {% endif %}
+    
+    {% if order.status.value == 'approved' and (current_user.is_admin() or current_user.is_storekeeper()) %}
+    <form method="POST" action="{{ url_for('complete_order', order_id=order.id) }}" class="d-inline">
+        <button type="submit" class="btn btn-primary btn-sm">Выполнить</button>
+    </form>
+    {% endif %}
+    
+    {% if order.status.value in ['pending', 'approved'] %}
+    <form method="POST" action="{{ url_for('cancel_order', order_id=order.id) }}" class="d-inline">
+        <button type="submit" class="btn btn-danger btn-sm" 
+                onclick="return confirm('Отменить заказ?')">Отменить</button>
+    </form>
+    {% endif %}
+</td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Заказы не найдены</h5>
+            <p class="text-muted">
+                {% if current_user.is_admin() or current_user.is_storekeeper() %}
+                В системе пока нет заказов
+                {% else %}
+                У вас пока нет заказов
+                {% endif %}
+            </p>
+            <a href="{{ url_for('create_order') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i>Создать первый заказ
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Статистика -->
+{% if current_user.is_admin() or current_user.is_storekeeper() %}
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="text-warning" id="pendingCount">
+                    {{ orders|selectattr("status.value", "equalto", "pending")|list|length }}
+                </h3>
+                <p class="text-muted mb-0">Ожидают обработки</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="text-info" id="approvedCount">
+                    {{ orders|selectattr("status.value", "equalto", "approved")|list|length }}
+                </h3>
+                <p class="text-muted mb-0">Подтверждены</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="text-success" id="completedCount">
+                    {{ orders|selectattr("status.value", "equalto", "completed")|list|length }}
+                </h3>
+                <p class="text-muted mb-0">Выполнены</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="text-danger" id="cancelledCount">
+                    {{ orders|selectattr("status.value", "equalto", "cancelled")|list|length }}
+                </h3>
+                <p class="text-muted mb-0">Отменены</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function updateOrderStatus(orderId, status) {
+    if (confirm('Вы уверены, что хотите изменить статус заказа?')) {
+        // Здесь будет AJAX запрос для обновления статуса
+        alert('Статус заказа обновлен. В реальной системе здесь будет AJAX запрос.');
+        // В реальной системе: fetch(`/api/orders/${orderId}/status`, { method: 'POST', body: JSON.stringify({status}) })
+    }
+}
+
+function filterOrders() {
+    const searchText = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const rows = document.querySelectorAll('.order-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        const orderNumber = row.cells[0].textContent.toLowerCase();
+        const customerName = row.cells[1].textContent.toLowerCase();
+        const status = row.getAttribute('data-status');
+        
+        const matchesSearch = orderNumber.includes(searchText) || customerName.includes(searchText);
+        const matchesStatus = !statusFilter || status === statusFilter;
+        
+        if (matchesSearch && matchesStatus) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    document.getElementById('ordersCount').textContent = visibleCount;
+}
+
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    filterOrders();
+}
+
+// Инициализация фильтров
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('searchInput').addEventListener('input', filterOrders);
+    document.getElementById('statusFilter').addEventListener('change', filterOrders);
+});
+</script>
+{% endblock %}

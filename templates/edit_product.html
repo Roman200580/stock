@@ -1,0 +1,751 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-2">
+            <i class="fas fa-edit me-2 gradient-text"></i>Редактирование товара
+        </h1>
+        <p class="text-muted mb-0">Изменение информации о товаре #{{ product.id }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('public_product_detail', product_id=product.id) }}" class="btn btn-outline-info">
+            <i class="fas fa-eye me-2"></i>Просмотр
+        </a>
+        <a href="{{ url_for('products') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Назад к списку
+        </a>
+    </div>
+</div>
+
+<!-- Статистика товара -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-card fade-in-up">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" 
+                     style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(219, 39, 119, 0.2));">
+                    <i class="fas fa-boxes-stacked fa-2x" style="color: var(--primary);"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0">{{ product.current_stock }}</h4>
+                    <p class="text-muted mb-0 small">Текущий остаток</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 100ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" 
+                     style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.2));">
+                    <i class="fas fa-money-bill-wave fa-2x" style="color: var(--warning);"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0">{{ "%.2f"|format(product.price) }} ₽</h4>
+                    <p class="text-muted mb-0 small">Цена продажи</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 200ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" 
+                     style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.2));">
+                    <i class="fas fa-tag fa-2x" style="color: var(--success);"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0">{{ product.category.name if product.category else "Без категории" }}</h4>
+                    <p class="text-muted mb-0 small">Категория</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 300ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" 
+                     style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(96, 165, 250, 0.2));">
+                    <i class="fas fa-chart-line fa-2x" style="color: var(--info);"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0">{{ product.sold_count or 0 }}</h4>
+                    <p class="text-muted mb-0 small">Продано всего</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Форма редактирования -->
+<div class="card border-0 shadow-sm fade-in-up">
+    <div class="card-header bg-white border-0">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-edit me-2"></i>Редактирование товара
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('update_product', product_id=product.id) }}" 
+              enctype="multipart/form-data" id="editProductForm">
+            
+            <ul class="nav nav-pills mb-4" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" 
+                            data-bs-target="#basic" type="button" role="tab">
+                        <i class="fas fa-info-circle me-2"></i>Основное
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="price-tab" data-bs-toggle="tab" 
+                            data-bs-target="#price" type="button" role="tab">
+                        <i class="fas fa-money-bill me-2"></i>Цены и запас
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="media-tab" data-bs-toggle="tab" 
+                            data-bs-target="#media" type="button" role="tab">
+                        <i class="fas fa-image me-2"></i>Изображения
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" 
+                            data-bs-target="#advanced" type="button" role="tab">
+                        <i class="fas fa-cog me-2"></i>Дополнительно
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="productTabsContent">
+                <!-- Основная информация -->
+                <div class="tab-pane fade show active" id="basic" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Название товара *</label>
+                                <input type="text" class="form-control" name="name" 
+                                       value="{{ product.name }}" required
+                                       placeholder="Введите название товара">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">SKU *</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="sku" 
+                                           value="{{ product.sku }}" required
+                                           placeholder="Уникальный код товара">
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                            onclick="generateSKU()">
+                                        <i class="fas fa-sync"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Описание</label>
+                                <textarea class="form-control" name="description" rows="5" 
+                                          placeholder="Подробное описание товара...">{{ product.description or '' }}</textarea>
+                                <div class="form-text">Максимум 2000 символов</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Категория</label>
+                                <select class="form-select" name="category_id" id="categorySelect">
+                                    <option value="">Выберите категорию</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}" 
+                                            {% if product.category_id == category.id %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">
+                                    <a href="#" class="small" onclick="showNewCategoryModal()">
+                                        <i class="fas fa-plus"></i> Создать новую категорию
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Поставщик</label>
+                                <select class="form-select" name="supplier_id" id="supplierSelect">
+                                    <option value="">Выберите поставщика</option>
+                                    {% for supplier in suppliers %}
+                                    <option value="{{ supplier.id }}" 
+                                            {% if product.supplier_id == supplier.id %}selected{% endif %}>
+                                        {{ supplier.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">
+                                    <a href="#" class="small" onclick="showNewSupplierModal()">
+                                        <i class="fas fa-plus"></i> Добавить нового поставщика
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Единица измерения *</label>
+                                        <select class="form-select" name="unit" required>
+                                            <option value="шт" {% if product.unit == 'шт' %}selected{% endif %}>шт (штуки)</option>
+                                            <option value="кг" {% if product.unit == 'кг' %}selected{% endif %}>кг (килограммы)</option>
+                                            <option value="л" {% if product.unit == 'л' %}selected{% endif %}>л (литры)</option>
+                                            <option value="м" {% if product.unit == 'м' %}selected{% endif %}>м (метры)</option>
+                                            <option value="уп" {% if product.unit == 'уп' %}selected{% endif %}>уп (упаковки)</option>
+                                            <option value="компл" {% if product.unit == 'компл' %}selected{% endif %}>компл (комплекты)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Место хранения</label>
+                                        <input type="text" class="form-control" name="location" 
+                                               value="{{ product.location or '' }}"
+                                               placeholder="Например: Стеллаж A-5">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Цены и запас -->
+                <div class="tab-pane fade" id="price" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Цена продажи (₽) *</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" class="form-control" name="price" 
+                                           value="{{ product.price }}" required min="0">
+                                    <span class="input-group-text">₽</span>
+                                </div>
+                                <div class="form-text">Розничная цена</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Себестоимость (₽)</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" class="form-control" name="cost_price" 
+                                           value="{{ product.cost_price or 0 }}" min="0">
+                                    <span class="input-group-text">₽</span>
+                                </div>
+                                <div class="form-text">Закупочная цена</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Цена оптовая (₽)</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" class="form-control" name="wholesale_price" 
+                                           value="{{ product.wholesale_price or product.price }}" min="0">
+                                    <span class="input-group-text">₽</span>
+                                </div>
+                                <div class="form-text">При заказе от 10 штук</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Текущий остаток</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" value="{{ product.current_stock }}" 
+                                           disabled style="background: var(--bg-tertiary);">
+                                    <span class="input-group-text">{{ product.unit }}</span>
+                                </div>
+                                <div class="form-text">
+                                    <a href="#" class="small" onclick="showStockAdjustmentModal()">
+                                        <i class="fas fa-edit"></i> Корректировать остаток
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Минимальный запас</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="min_stock" 
+                                           value="{{ product.min_stock or 0 }}" min="0">
+                                    <span class="input-group-text">{{ product.unit }}</span>
+                                </div>
+                                <div class="form-text">При достижении этого уровня будет уведомление</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Максимальный запас</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="max_stock" 
+                                           value="{{ product.max_stock or 1000 }}" min="0">
+                                    <span class="input-group-text">{{ product.unit }}</span>
+                                </div>
+                                <div class="form-text">Рекомендуемый максимальный запас на складе</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Статус товара</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_active" 
+                                           id="isActive" {% if product.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="isActive">
+                                        Товар активен и доступен для продажи
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Вес товара (кг)</label>
+                                <input type="number" step="0.01" class="form-control" name="weight" 
+                                       value="{{ product.weight or 0 }}" min="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Изображения -->
+                <div class="tab-pane fade" id="media" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label">Основное изображение</label>
+                                
+                                {% if product.image_filename %}
+                                <div class="mb-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <img src="{{ url_for('static', filename='uploads/products/' + product.image_filename) }}" 
+                                                 class="img-fluid rounded mb-3" 
+                                                 style="max-height: 200px;" 
+                                                 alt="{{ product.name }}"
+                                                 id="currentImage">
+                                            <div class="d-flex gap-2 justify-content-center">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                        onclick="document.getElementById('imageInput').click()">
+                                                    <i class="fas fa-sync me-1"></i>Заменить
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="deleteImage()">
+                                                    <i class="fas fa-trash me-1"></i>Удалить
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <input type="file" class="form-control d-none" name="image" 
+                                       id="imageInput" accept="image/*" onchange="previewImage(this)">
+                                <div class="text-center">
+                                    <button type="button" class="btn btn-outline-primary w-100" 
+                                            onclick="document.getElementById('imageInput').click()">
+                                        <i class="fas fa-upload me-2"></i>
+                                        {% if product.image_filename %}Заменить изображение{% else %}Загрузить изображение{% endif %}
+                                    </button>
+                                </div>
+                                <div class="form-text mt-2">
+                                    Поддерживаемые форматы: JPG, PNG, GIF, WebP. Макс. размер: 16MB
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label">Дополнительные изображения</label>
+                                <input type="file" class="form-control" name="additional_images[]" 
+                                       accept="image/*" multiple id="additionalImagesInput">
+                                <div class="form-text">Можно выбрать несколько файлов</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Превью изображения</label>
+                                <div id="imagePreview" class="border rounded p-3 text-center" 
+                                     style="min-height: 200px; background: var(--bg-tertiary);">
+                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                        <div class="text-muted">
+                                            <i class="fas fa-image fa-2x mb-2"></i>
+                                            <p class="mb-0">Предпросмотр появится здесь</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Дополнительные изображения -->
+                    <div class="mt-4">
+                        <h6 class="mb-3">Галерея изображений</h6>
+                        <div id="galleryPreview" class="row g-2">
+                            <!-- Дополнительные изображения будут здесь -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Дополнительно -->
+                <div class="tab-pane fade" id="advanced" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Штрих-код</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="barcode" 
+                                           value="{{ product.barcode or '' }}"
+                                           placeholder="Введите штрих-код">
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                            onclick="generateBarcode()">
+                                        <i class="fas fa-barcode"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Артикул производителя</label>
+                                <input type="text" class="form-control" name="manufacturer_code" 
+                                       value="{{ product.manufacturer_code or '' }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Страна производства</label>
+                                <input type="text" class="form-control" name="country_of_origin" 
+                                       value="{{ product.country_of_origin or '' }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Гарантия (месяцы)</label>
+                                <input type="number" class="form-control" name="warranty_months" 
+                                       value="{{ product.warranty_months or 0 }}" min="0">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Размеры (Д×Ш×В, см)</label>
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <input type="number" step="0.1" class="form-control" 
+                                               name="dimensions_length" placeholder="Длина"
+                                               value="{{ product.dimensions_length or '' }}">
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="number" step="0.1" class="form-control" 
+                                               name="dimensions_width" placeholder="Ширина"
+                                               value="{{ product.dimensions_width or '' }}">
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="number" step="0.1" class="form-control" 
+                                               name="dimensions_height" placeholder="Высота"
+                                               value="{{ product.dimensions_height or '' }}">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Объем (м³)</label>
+                                <input type="number" step="0.001" class="form-control" name="volume" 
+                                       value="{{ product.volume or '' }}" min="0">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Теги</label>
+                                <input type="text" class="form-control" name="tags" 
+                                       value="{{ product.tags or '' }}"
+                                       placeholder="тег1, тег2, тег3">
+                                <div class="form-text">Разделяйте теги запятыми</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">SEO описание</label>
+                                <textarea class="form-control" name="seo_description" rows="3">{{ product.seo_description or '' }}</textarea>
+                                <div class="form-text">Для поисковых систем</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-top pt-4 mt-4">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-outline-secondary me-2" onclick="showPreview()">
+                            <i class="fas fa-eye me-2"></i>Предпросмотр
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" onclick="showDeleteModal()">
+                            <i class="fas fa-trash me-2"></i>Удалить товар
+                        </button>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('products') }}" class="btn btn-secondary me-2">Отмена</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Сохранить изменения
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно подтверждения удаления -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--danger), #dc2626); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Подтверждение удаления
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить товар <strong>"{{ product.name }}"</strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Это действие невозможно отменить. Все связанные данные будут удалены.
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Введите название товара для подтверждения:</label>
+                    <input type="text" class="form-control" id="confirmProductName" 
+                           placeholder="{{ product.name }}">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                    <i class="fas fa-trash me-2"></i>Удалить товар
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Валидация формы
+    const form = document.getElementById('editProductForm');
+    const nameInput = form.querySelector('input[name="name"]');
+    const priceInput = form.querySelector('input[name="price"]');
+    
+    form.addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Показываем индикатор загрузки
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Сохранение...';
+        submitBtn.disabled = true;
+        
+        return true;
+    });
+    
+    // Подтверждение удаления
+    const confirmInput = document.getElementById('confirmProductName');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    
+    if (confirmInput && confirmBtn) {
+        confirmInput.addEventListener('input', function() {
+            confirmBtn.disabled = this.value !== '{{ product.name }}';
+        });
+        
+        confirmBtn.addEventListener('click', function() {
+            if (confirmInput.value === '{{ product.name }}') {
+                window.location.href = '{{ url_for("delete_product", product_id=product.id) }}';
+            }
+        });
+    }
+    
+    // Генерация SKU
+    setupSKUGenerator();
+    
+    // Предпросмотр изображения
+    setupImagePreview();
+});
+
+function validateForm() {
+    const name = document.querySelector('input[name="name"]').value.trim();
+    const price = document.querySelector('input[name="price"]').value;
+    const sku = document.querySelector('input[name="sku"]').value.trim();
+    
+    if (!name) {
+        showNotification('Введите название товара', 'error');
+        return false;
+    }
+    
+    if (!price || parseFloat(price) <= 0) {
+        showNotification('Укажите корректную цену', 'error');
+        return false;
+    }
+    
+    if (!sku) {
+        showNotification('Укажите SKU товара', 'error');
+        return false;
+    }
+    
+    return true;
+}
+
+function generateSKU() {
+    const prefix = 'PROD';
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const sku = `${prefix}-${timestamp}-${random}`;
+    
+    document.querySelector('input[name="sku"]').value = sku;
+    showNotification('SKU сгенерирован', 'success');
+}
+
+function generateBarcode() {
+    const ean13 = Array.from({length: 12}, () => Math.floor(Math.random() * 10)).join('');
+    let sum = 0;
+    
+    for (let i = 0; i < 12; i++) {
+        sum += parseInt(ean13[i]) * (i % 2 === 0 ? 1 : 3);
+    }
+    
+    const checkDigit = (10 - (sum % 10)) % 10;
+    const barcode = ean13 + checkDigit;
+    
+    document.querySelector('input[name="barcode"]').value = barcode;
+    showNotification('Штрих-код сгенерирован', 'success');
+}
+
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    const gallery = document.getElementById('galleryPreview');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.innerHTML = `
+                <img src="${e.target.result}" class="img-fluid rounded" 
+                     style="max-height: 200px;" alt="Превью">
+                <div class="mt-2">
+                    <small class="text-muted">${input.files[0].name} (${formatBytes(input.files[0].size)})</small>
+                </div>
+            `;
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+    
+    // Обработка дополнительных изображений
+    if (input.id === 'additionalImagesInput' && input.files) {
+        gallery.innerHTML = '';
+        Array.from(input.files).forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-3';
+                col.innerHTML = `
+                    <div class="card">
+                        <img src="${e.target.result}" class="card-img-top" 
+                             style="height: 100px; object-fit: cover;" alt="Доп. изображение ${index + 1}">
+                        <div class="card-body p-2">
+                            <small class="text-muted d-block">${file.name.substring(0, 15)}...</small>
+                            <button type="button" class="btn btn-sm btn-outline-danger w-100 mt-1" 
+                                    onclick="removeGalleryImage(${index})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                gallery.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+}
+
+function removeGalleryImage(index) {
+    const input = document.getElementById('additionalImagesInput');
+    const files = Array.from(input.files);
+    files.splice(index, 1);
+    
+    // Создаем новый DataTransfer
+    const dt = new DataTransfer();
+    files.forEach(file => dt.items.add(file));
+    input.files = dt.files;
+    
+    // Обновляем превью
+    previewImage(input);
+}
+
+function deleteImage() {
+    if (confirm('Удалить текущее изображение?')) {
+        const deleteCheckbox = document.createElement('input');
+        deleteCheckbox.type = 'hidden';
+        deleteCheckbox.name = 'delete_image';
+        deleteCheckbox.value = '1';
+        document.getElementById('editProductForm').appendChild(deleteCheckbox);
+        
+        document.getElementById('currentImage').style.opacity = '0.3';
+        showNotification('Изображение будет удалено при сохранении', 'info');
+    }
+}
+
+function showDeleteModal() {
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+function showPreview() {
+    // Здесь будет логика предпросмотра товара
+    window.open('/product/{{ product.id }}/preview', '_blank');
+}
+
+function showNewCategoryModal() {
+    // Модальное окно создания новой категории
+    showNotification('Функция добавления категории будет реализована позже', 'info');
+}
+
+function showNewSupplierModal() {
+    // Модальное окно создания нового поставщика
+    showNotification('Функция добавления поставщика будет реализована позже', 'info');
+}
+
+function showStockAdjustmentModal() {
+    // Модальное окно корректировки остатка
+    showNotification('Функция корректировки остатка будет реализована позже', 'info');
+}
+
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+function setupSKUGenerator() {
+    const skuInput = document.querySelector('input[name="sku"]');
+    if (!skuInput.value) {
+        generateSKU();
+    }
+}
+
+function setupImagePreview() {
+    const imageInput = document.getElementById('imageInput');
+    if (imageInput) {
+        imageInput.addEventListener('change', function() {
+            previewImage(this);
+        });
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Реализация уведомлений
+    alert(`${type}: ${message}`);
+}
+</script>
+{% endblock %}

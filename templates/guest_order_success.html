@@ -1,0 +1,304 @@
+<!-- templates/guest_order_success.html -->
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заказ принят - StockSync Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Стили из base.html */
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #5b21b6;
+            --primary-light: #8b5cf6;
+            --secondary: #db2777;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #0ea5e9;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+            --shadow-sm: 0 2px 12px rgba(124, 58, 237, 0.08);
+            --shadow-md: 0 8px 30px rgba(124, 58, 237, 0.12);
+            --shadow-lg: 0 20px 50px rgba(124, 58, 237, 0.18);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --transition-fast: 200ms ease;
+            --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --primary-light: #a78bfa;
+            --secondary: #f472b6;
+            --accent: #f9a8d4;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --info: #60a5fa;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-light: #334155;
+            --border-medium: #475569;
+            --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.35);
+            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.45);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background var(--transition-base);
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #0c1425 0%, var(--bg-primary) 100%);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-base);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .btn {
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            padding: 0.75rem 1.75rem;
+            border: 2px solid transparent;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(124, 58, 237, 0.35);
+        }
+
+        .success-icon {
+            animation: successAnimation 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes successAnimation {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-8 col-lg-6">
+                <div class="card border-0 shadow-lg fade-in-up">
+                    <div class="card-body py-5 text-center">
+                        <div class="success-animation mb-4">
+                            <div class="success-icon">
+                                <div class="rounded-circle p-4 d-inline-block" 
+                                     style="background: linear-gradient(135deg, var(--success), rgba(16, 185, 129, 0.2));">
+                                    <i class="fas fa-check-circle fa-5x" style="color: var(--success);"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h1 class="display-5 mb-3 gradient-text">Заказ принят!</h1>
+                        <p class="lead mb-4" style="color: var(--text-secondary);">
+                            Ваш заказ <strong class="text-primary">#{{ order.order_number }}</strong> успешно создан.
+                        </p>
+                        
+                        <div class="card mt-4 mb-4" style="background: rgba(124, 58, 237, 0.05); border: 1px solid rgba(124, 58, 237, 0.1);">
+                            <div class="card-body text-start">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-info-circle me-2" style="color: var(--info);"></i>
+                                    Что дальше?
+                                </h5>
+                                <p class="mb-2">Наш менеджер свяжется с вами в ближайшее время для подтверждения заказа и уточнения деталей доставки.</p>
+                                <p class="mb-0">Вы можете отслеживать статус заказа по номеру: <strong>{{ order.order_number }}</strong></p>
+                            </div>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                <h6 class="card-title mb-3" style="color: var(--primary);">
+                                    <i class="fas fa-receipt me-2"></i>Детали заказа
+                                </h6>
+                                <div class="row text-start">
+                                    <div class="col-md-6 mb-3">
+                                        <small class="text-muted d-block">Номер заказа:</small>
+                                        <span class="badge bg-primary">{{ order.order_number }}</span>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <small class="text-muted d-block">Дата создания:</small>
+                                        <p class="mb-2"><strong>{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</strong></p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <small class="text-muted d-block">Клиент:</small>
+                                        <p class="mb-2"><strong>{{ order.customer_name }}</strong></p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <small class="text-muted d-block">Сумма заказа:</small>
+                                        <p class="mb-2"><strong class="h5 text-primary">{{ "%.2f"|format(order.total_amount) }} ₽</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-5">
+                            <a href="{{ url_for('public_catalog') }}" class="btn btn-primary btn-lg me-3">
+                                <i class="fas fa-boxes me-2"></i>Вернуться в каталог
+                            </a>
+                            <a href="{{ url_for('guest_order') }}" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-plus-circle me-2"></i>Новый заказ
+                            </a>
+                        </div>
+
+                        <div class="mt-4">
+                            <small class="text-muted">
+                                <i class="fas fa-heart me-1" style="color: var(--secondary);"></i>
+                                Спасибо, что выбрали нас! Мы ценим ваше доверие.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Очищаем корзину после успешного заказа
+        localStorage.removeItem('guest_cart');
+        
+        // Добавляем анимацию успеха
+        document.addEventListener('DOMContentLoaded', function() {
+            // Создаем конфетти
+            createConfetti();
+            
+            // Автоматическая отправка данных в Google Analytics (если есть)
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'purchase', {
+                    transaction_id: '{{ order.order_number }}',
+                    value: {{ order.total_amount }},
+                    currency: 'RUB',
+                    items: []
+                });
+            }
+        });
+        
+        function createConfetti() {
+            const colors = ['#7c3aed', '#db2777', '#10b981', '#f59e0b', '#0ea5e9'];
+            const container = document.createElement('div');
+            container.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 9999;
+            `;
+            document.body.appendChild(container);
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.cssText = `
+                    position: absolute;
+                    width: 10px;
+                    height: 10px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    border-radius: 2px;
+                    top: -20px;
+                    left: ${Math.random() * 100}%;
+                    opacity: 0.8;
+                `;
+                container.appendChild(confetti);
+                
+                // Анимация падения
+                const animation = confetti.animate([
+                    { transform: `translate(0, 0) rotate(0deg)`, opacity: 1 },
+                    { transform: `translate(${Math.random() * 100 - 50}px, 100vh) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+                ], {
+                    duration: Math.random() * 3000 + 2000,
+                    easing: 'cubic-bezier(0.215, 0.610, 0.355, 1)'
+                });
+                
+                // Удаляем после анимации
+                animation.onfinish = () => confetti.remove();
+            }
+            
+            // Удаляем контейнер через 5 секунд
+            setTimeout(() => container.remove(), 5000);
+        }
+    </script>
+</body>
+</html>

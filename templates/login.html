@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - StockSync Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Стили из base.html */
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #5b21b6;
+            --primary-light: #8b5cf6;
+            --secondary: #db2777;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #0ea5e9;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+            --shadow-sm: 0 2px 12px rgba(124, 58, 237, 0.08);
+            --shadow-md: 0 8px 30px rgba(124, 58, 237, 0.12);
+            --shadow-lg: 0 20px 50px rgba(124, 58, 237, 0.18);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --transition-fast: 200ms ease;
+            --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --primary-light: #a78bfa;
+            --secondary: #f472b6;
+            --accent: #f9a8d4;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --info: #60a5fa;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-light: #334155;
+            --border-medium: #475569;
+            --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.35);
+            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.45);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background var(--transition-base);
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #0c1425 0%, var(--bg-primary) 100%);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-base);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .btn {
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            padding: 0.75rem 1.75rem;
+            border: 2px solid transparent;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(124, 58, 237, 0.35);
+        }
+
+        .form-control {
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 0.85rem 1.2rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all var(--transition-fast);
+            font-weight: 500;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .input-group-text {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-light);
+            color: var(--text-secondary);
+        }
+
+        .alert {
+            border: none;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(248, 113, 113, 0.2));
+            color: var(--text-primary);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.2));
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-icon {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-8 col-lg-6 col-xl-5">
+                <div class="card border-0 shadow-lg fade-in-up">
+                    <div class="card-body p-4 p-md-5">
+                        <!-- Логотип -->
+                        <div class="text-center mb-4">
+                            <div class="login-icon mb-3">
+                                <div class="rounded-circle p-3 d-inline-block" 
+                                     style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(219, 39, 119, 0.2));">
+                                    <i class="fas fa-warehouse fa-3x gradient-text"></i>
+                                </div>
+                            </div>
+                            <h2 class="h3 gradient-text mb-1">StockSync Pro</h2>
+                            <p class="text-muted mb-0">Войдите в свой аккаунт</p>
+                        </div>
+
+                        <!-- Flash сообщения -->
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show mb-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle p-2 me-3" 
+                                                 style="background: {{ 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(248, 113, 113, 0.3))' if category == 'error' else 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.3))' }}">
+                                                <i class="fas {{ 'fa-exclamation-triangle' if category == 'error' else 'fa-check-circle' }}" 
+                                                   style="color: {{ 'var(--danger)' if category == 'error' else 'var(--success)' }}"></i>
+                                            </div>
+                                            <div class="flex-grow-1">{{ message }}</div>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <!-- Форма входа -->
+                        <form method="POST" id="loginForm">
+                            <div class="mb-4">
+                                <label for="email" class="form-label">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           required placeholder="Введите ваш email"
+                                           autocomplete="email">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="password" class="form-label">Пароль</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" class="form-control" id="password" name="password" 
+                                           required placeholder="Введите пароль"
+                                           autocomplete="current-password">
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-4 d-flex justify-content-between align-items-center">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                                    <label class="form-check-label" for="remember">Запомнить меня</label>
+                                </div>
+                                <a href="#" class="small text-decoration-none" style="color: var(--primary);"
+                                   onclick="showForgotPassword()">
+                                    Забыли пароль?
+                                </a>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 mb-4" id="loginButton">
+                                <i class="fas fa-sign-in-alt me-2"></i>Войти
+                                <span class="spinner-border spinner-border-sm d-none ms-2" role="status"></span>
+                            </button>
+
+                            
+
+                            <div class="text-center">
+                                <p class="mb-0">
+                                    Нет аккаунта? 
+                                    <a href="{{ url_for('register') }}" class="text-decoration-none fw-semibold" style="color: var(--primary);">
+                                        Зарегистрироваться
+                                    </a>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно восстановления пароля -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white;">
+                    <h5 class="modal-title">
+                        <i class="fas fa-key me-2"></i>Восстановление пароля
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Введите ваш email, и мы отправим вам инструкции по восстановлению пароля.</p>
+                    <div class="mb-3">
+                        <label for="resetEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="resetEmail" 
+                               placeholder="Введите email вашего аккаунта">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="sendResetPassword()">
+                        Отправить инструкции
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Переключение видимости пароля
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+            
+            if (togglePassword) {
+                togglePassword.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+                });
+            }
+            
+            // Автозаполнение запомненного email
+            const savedEmail = localStorage.getItem('remembered_email');
+            if (savedEmail && document.getElementById('email')) {
+                document.getElementById('email').value = savedEmail;
+                document.getElementById('remember').checked = true;
+            }
+            
+            // Обработка формы входа
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    const email = document.getElementById('email').value;
+                    const remember = document.getElementById('remember').checked;
+                    const loginButton = document.getElementById('loginButton');
+                    const spinner = loginButton.querySelector('.spinner-border');
+                    
+                    // Показываем спиннер
+                    loginButton.disabled = true;
+                    spinner.classList.remove('d-none');
+                    
+                    // Сохраняем email если нужно
+                    if (remember) {
+                        localStorage.setItem('remembered_email', email);
+                    } else {
+                        localStorage.removeItem('remembered_email');
+                    }
+                    
+                    // Эмуляция задержки для UX
+                    setTimeout(() => {
+                        // В реальном приложении здесь будет отправка формы
+                        loginButton.disabled = false;
+                        spinner.classList.add('d-none');
+                    }, 1500);
+                });
+            }
+            
+            // Проверяем автозаполнение браузера
+            setTimeout(() => {
+                const emailField = document.getElementById('email');
+                const passwordField = document.getElementById('password');
+                
+                if (emailField.value && passwordField.value) {
+                    // Если поля заполнены автоматически, активируем чекбокс "запомнить"
+                    document.getElementById('remember').checked = true;
+                }
+            }, 100);
+        });
+        
+        function showForgotPassword() {
+            const modal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
+            modal.show();
+        }
+        
+        function sendResetPassword() {
+            const email = document.getElementById('resetEmail').value;
+            if (!email) {
+                alert('Пожалуйста, введите ваш email');
+                return;
+            }
+            
+            // Эмуляция отправки запроса
+            const button = document.querySelector('#forgotPasswordModal .btn-primary');
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Отправка...';
+            
+            setTimeout(() => {
+                button.disabled = false;
+                button.innerHTML = originalText;
+                alert(`Инструкции по восстановлению отправлены на ${email}`);
+                bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal')).hide();
+            }, 2000);
+        }
+        
+        function socialLogin(provider) {
+            // Эмуляция социального входа
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Подключение...';
+            
+            setTimeout(() => {
+                // В реальном приложении здесь будет перенаправление на OAuth провайдера
+                alert(`Перенаправление на ${provider}...`);
+                // window.location.href = `/auth/${provider}`;
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }, 1000);
+        }
+        
+        // Горячие клавиши
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+Enter для входа
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                document.getElementById('loginButton').click();
+            }
+            
+            // Tab для навигации
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const inputs = document.querySelectorAll('#loginForm input');
+                const current = document.activeElement;
+                let index = Array.from(inputs).indexOf(current);
+                
+                if (e.shiftKey) {
+                    index = (index - 1 + inputs.length) % inputs.length;
+                } else {
+                    index = (index + 1) % inputs.length;
+                }
+                
+                inputs[index].focus();
+            }
+        });
+    </script>
+</body>
+</html>

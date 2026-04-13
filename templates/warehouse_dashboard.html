@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 gradient-text">
+        <i class="fas fa-tachometer-alt me-2"></i>Панель кладовщика
+    </h1>
+    <div class="dropdown">
+        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="fas fa-calendar-alt me-2"></i>Сегодня
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" onclick="setDateFilter('today')">Сегодня</a></li>
+            <li><a class="dropdown-item" href="#" onclick="setDateFilter('week')">Эта неделя</a></li>
+            <li><a class="dropdown-item" href="#" onclick="setDateFilter('month')">Этот месяц</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-4">
+        <div class="stat-card fade-in-up" style="animation-delay: 100ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" style="background: linear-gradient(135deg, var(--success), rgba(16, 185, 129, 0.2));">
+                    <i class="fas fa-arrow-down text-success fa-lg"></i>
+                </div>
+                <div>
+                    <h3 class="mb-0">{{ today_operations }}</h3>
+                    <p class="text-muted mb-0 small">Операций сегодня</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="stat-card fade-in-up" style="animation-delay: 200ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" style="background: linear-gradient(135deg, var(--warning), rgba(245, 158, 11, 0.2));">
+                    <i class="fas fa-exclamation-triangle text-warning fa-lg"></i>
+                </div>
+                <div>
+                    <h3 class="mb-0">{{ low_stock_products|length }}</h3>
+                    <p class="text-muted mb-0 small">Требуют пополнения</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="stat-card fade-in-up" style="animation-delay: 300ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" style="background: linear-gradient(135deg, var(--info), rgba(14, 165, 233, 0.2));">
+                    <i class="fas fa-clipboard-list text-info fa-lg"></i>
+                </div>
+                <div>
+                    <h3 class="mb-0">{{ pending_orders }}</h3>
+                    <p class="text-muted mb-0 small">Заказов ожидают</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="stat-card fade-in-up" style="animation-delay: 400ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" style="background: linear-gradient(135deg, var(--primary), rgba(124, 58, 237, 0.2));">
+                    <i class="fas fa-box text-primary fa-lg"></i>
+                </div>
+                <div>
+                    <h3 class="mb-0" id="totalProducts">0</h3>
+                    <p class="text-muted mb-0 small">Всего товаров</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Товары с низким запасом -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm fade-in-up" style="animation-delay: 500ms">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Требуют пополнения
+                </h5>
+                <a href="{{ url_for('products') }}?low_stock=true" class="btn btn-sm btn-outline-primary">
+                    Все товары
+                </a>
+            </div>
+            <div class="card-body">
+                {% if low_stock_products %}
+                <div class="list-group list-group-flush">
+                    {% for product in low_stock_products[:5] %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 py-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-semibold">{{ product.name }}</h6>
+                            <small class="text-muted d-block">
+                                {{ product.sku }} • 
+                                {{ product.location if product.location else 'Место не указано' }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-{{ 'danger' if product.current_stock <= 3 else 'warning' }} rounded-pill">
+                                {{ product.current_stock }} {{ product.unit }}
+                            </span>
+                            <div class="text-muted small mt-1">Мин: {{ product.min_stock }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if low_stock_products|length > 5 %}
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('products') }}?low_stock=true" class="btn btn-sm btn-outline-primary">
+                        Показать все ({{ low_stock_products|length }})
+                    </a>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3 opacity-50"></i>
+                    <h5 class="text-muted mb-2">Все товары в норме</h5>
+                    <p class="text-muted small">Нет товаров с низким запасом</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Последние операции -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm fade-in-up" style="animation-delay: 600ms">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history text-info me-2"></i>
+                    Последние операции
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_operations %}
+                <div class="timeline">
+                    {% for operation in recent_operations[:6] %}
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle p-2" style="background: {% if operation.type.value == 'receipt' %}linear-gradient(135deg, var(--success), rgba(16, 185, 129, 0.2)){% else %}linear-gradient(135deg, var(--danger), rgba(239, 68, 68, 0.2)){% endif %};">
+                                {% if operation.type.value == 'receipt' %}
+                                <i class="fas fa-arrow-down text-success"></i>
+                                {% else %}
+                                <i class="fas fa-arrow-up text-danger"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="small text-muted">{{ operation.created_at.strftime('%H:%M %d.%m.%Y') }}</div>
+                            <div class="fw-semibold">
+                                {{ operation.product.name }}
+                                <span class="badge bg-{{ 'success' if operation.type.value == 'receipt' else 'danger' }} ms-2">
+                                    {{ operation.quantity }} {{ operation.product.unit }}
+                                </span>
+                            </div>
+                            <div class="small text-muted">
+                                {{ operation.document_number }}
+                                {% if operation.notes %}<br>{{ operation.notes }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if recent_operations|length > 6 %}
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('inventory_list') }}" class="btn btn-sm btn-outline-primary">
+                        Показать все операции
+                    </a>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-info-circle fa-3x text-muted mb-3 opacity-50"></i>
+                    <h5 class="text-muted mb-2">Операции не найдены</h5>
+                    <p class="text-muted small">Сегодня еще не было операций</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Быстрые действия -->
+<div class="card border-0 shadow-sm fade-in-up" style="animation-delay: 700ms">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-bolt text-success me-2"></i>
+            Быстрые действия
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="{{ url_for('receive_goods') }}" class="btn btn-lg btn-success w-100 h-100 py-4 d-flex flex-column align-items-center justify-content-center">
+                    <i class="fas fa-arrow-down fa-2x mb-3"></i>
+                    <span>Принять товар</span>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('ship_goods') }}" class="btn btn-lg btn-danger w-100 h-100 py-4 d-flex flex-column align-items-center justify-content-center">
+                    <i class="fas fa-arrow-up fa-2x mb-3"></i>
+                    <span>Отгрузить товар</span>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('products') }}" class="btn btn-lg btn-primary w-100 h-100 py-4 d-flex flex-column align-items-center justify-content-center">
+                    <i class="fas fa-boxes fa-2x mb-3"></i>
+                    <span>Все товары</span>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('orders') }}" class="btn btn-lg btn-info w-100 h-100 py-4 d-flex flex-column align-items-center justify-content-center">
+                    <i class="fas fa-clipboard-list fa-2x mb-3"></i>
+                    <span>Обработать заказы</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Функции для дашборда
+document.addEventListener('DOMContentLoaded', function() {
+    // Загрузка статистики
+    loadDashboardStats();
+    
+    // Обновление статистики в реальном времени
+    setupDashboardUpdates();
+    
+    // Инициализация горячих клавиш для дашборда
+    initDashboardHotkeys();
+    
+    // Инициализация графиков
+    initDashboardCharts();
+});
+
+function loadDashboardStats() {
+    // Загружаем общее количество товаров
+    fetch('/api/dashboard/stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.total_products) {
+                document.getElementById('totalProducts').textContent = data.total_products;
+            }
+            
+            if (data.today_value) {
+                updateTodayValue(data.today_value);
+            }
+        })
+        .catch(error => console.error('Ошибка загрузки статистики:', error));
+}
+
+function updateTodayValue(value) {
+    const todayValueElement = document.getElementById('todayValue');
+    if (todayValueElement && value) {
+        todayValueElement.textContent = new Intl.NumberFormat('ru-RU', {
+            style: 'currency',
+            currency: 'RUB'
+        }).format(value);
+    }
+}
+
+function setupDashboardUpdates() {
+    // Обновление каждые 5 минут
+    setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            loadDashboardStats();
+        }
+    }, 300000);
+    
+    // Обновление времени каждую минуту
+    updateDashboardTime();
+    setInterval(updateDashboardTime, 60000);
+}
+
+function updateDashboardTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    const dateString = now.toLocaleDateString('ru-RU', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'long'
+    });
+    
+    const timeElement = document.getElementById('dashboardTime');
+    if (timeElement) {
+        timeElement.innerHTML = `
+            <span class="fw-bold">${timeString}</span>
+            <span class="text-muted">${dateString}</span>
+        `;
+    }
+}
+
+function initDashboardHotkeys() {
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+1 или Cmd+1 - принять товар
+        if ((e.ctrlKey || e.metaKey) && e.key === '1') {
+            e.preventDefault();
+            window.location.href = "{{ url_for('receive_goods') }}";
+        }
+        
+        // Ctrl+2 или Cmd+2 - отгрузить товар
+        if ((e.ctrlKey || e.metaKey) && e.key === '2') {
+            e.preventDefault();
+            window.location.href = "{{ url_for('ship_goods') }}";
+        }
+        
+        // Ctrl+3 или Cmd+3 - все товары
+        if ((e.ctrlKey || e.metaKey) && e.key === '3') {
+            e.preventDefault();
+            window.location.href = "{{ url_for('products') }}";
+        }
+        
+        // Ctrl+R или Cmd+R - обновить статистику
+        if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+            e.preventDefault();
+            loadDashboardStats();
+            showNotification('Статистика обновлена', 'info');
+        }
+    });
+}
+
+function setDateFilter(period) {
+    const filterButton = document.querySelector('.btn[data-bs-toggle="dropdown"]');
+    let periodText = 'Сегодня';
+    
+    switch(period) {
+        case 'today':
+            periodText = 'Сегодня';
+            break;
+        case 'week':
+            periodText = 'Эта неделя';
+            break;
+        case 'month':
+            periodText = 'Этот месяц';
+            break;
+    }
+    
+    if (filterButton) {
+        filterButton.innerHTML = `<i class="fas fa-calendar-alt me-2"></i>${periodText}`;
+    }
+    
+    // Здесь можно добавить загрузку данных за выбранный период
+    loadPeriodStats(period);
+}
+
+async function loadPeriodStats(period) {
+    try {
+        const response = await fetch(`/api/dashboard/stats?period=${period}`);
+        const data = await response.json();
+        
+        // Обновляем статистику на странице
+        updateDashboardStats(data);
+        
+        showNotification(`Показана статистика за ${period === 'today' ? 'сегодня' : period === 'week' ? 'неделю' : 'месяц'}`, 'info');
+    } catch (error) {
+        console.error('Ошибка загрузки статистики за период:', error);
+    }
+}
+
+function updateDashboardStats(data) {
+    // Обновляем статистические карточки
+    const elements = {
+        'today_operations': data.today_operations || 0,
+        'low_stock': data.low_stock_products || 0,
+        'pending_orders': data.pending_orders || 0,
+        'total_products': data.total_products || 0
+    };
+    
+    for (const [key, value] of Object.entries(elements)) {
+        const element = document.querySelector(`[data-stat="${key}"]`);
+        if (element) {
+            // Анимация изменения числа
+            animateNumberChange(element, value);
+        }
+    }
+}
+
+function animateNumberChange(element, newValue) {
+    const oldValue = parseInt(element.textContent) || 0;
+    const duration = 500;
+    const startTime = Date.now();
+    
+    function update() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Эффект easeOutCubic
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        const currentValue = Math.round(oldValue + (newValue - oldValue) * easeProgress);
+        
+        element.textContent = currentValue.toLocaleString('ru-RU');
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+    
+    update();
+}
+
+function initDashboardCharts() {
+    // Здесь можно инициализировать графики с помощью Chart.js
+    // Например, график операций за день
+    const ctx = document.getElementById('operationsChart');
+    if (ctx) {
+        // Код для инициализации графика
+    }
+}
+</script>
+{% endblock %}

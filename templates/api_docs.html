@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="fas fa-code me-2"></i>API Documentation</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="card border-0 shadow-sm fade-in-up">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">Навигация</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="#authentication" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="fas fa-key me-3" style="color: var(--primary);"></i>
+                        <span>Аутентификация</span>
+                    </a>
+                    <a href="#products" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="fas fa-box me-3" style="color: var(--success);"></i>
+                        <span>Товары</span>
+                    </a>
+                    <a href="#operations" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="fas fa-exchange-alt me-3" style="color: var(--info);"></i>
+                        <span>Операции</span>
+                    </a>
+                    <a href="#analytics" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="fas fa-chart-line me-3" style="color: var(--warning);"></i>
+                        <span>Аналитика</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        <!-- Authentication -->
+        <div class="card border-0 shadow-sm mb-4 fade-in-up" id="authentication">
+            <div class="card-header bg-white border-0">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-2 me-3" style="background: linear-gradient(135deg, var(--primary), var(--primary-light));">
+                        <i class="fas fa-key text-white"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Аутентификация</h5>
+                        <small class="text-muted">Получение токена доступа</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <h6 class="mb-3">POST /api/v1/auth/login</h6>
+                
+                <div class="code-block mb-3">
+                    <div class="code-header d-flex justify-content-between align-items-center p-2" 
+                         style="background: var(--bg-tertiary); border-radius: var(--radius-md) var(--radius-md) 0 0;">
+                        <small class="text-muted">Пример запроса:</small>
+                        <button class="btn btn-sm btn-outline-primary" onclick="copyCode('authRequest')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <pre id="authRequest" class="p-3 mb-0" style="background: var(--bg-secondary); border-radius: 0 0 var(--radius-md) var(--radius-md);"><code>{
+  "username": "admin",
+  "password": "password123"
+}</code></pre>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header d-flex justify-content-between align-items-center p-2" 
+                         style="background: var(--bg-tertiary); border-radius: var(--radius-md) var(--radius-md) 0 0;">
+                        <small class="text-muted">Пример ответа:</small>
+                        <button class="btn btn-sm btn-outline-primary" onclick="copyCode('authResponse')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <pre id="authResponse" class="p-3 mb-0" style="background: var(--bg-secondary); border-radius: 0 0 var(--radius-md) var(--radius-md);"><code>{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "user": {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@warehouse.com",
+    "role": "admin"
+  }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products -->
+        <div class="card border-0 shadow-sm mb-4 fade-in-up" id="products">
+            <div class="card-header bg-white border-0">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-2 me-3" style="background: linear-gradient(135deg, var(--success), var(--info));">
+                        <i class="fas fa-box text-white"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Товары</h5>
+                        <small class="text-muted">Управление товарами</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="api-endpoint mb-4">
+                    <h6 class="mb-2">
+                        <span class="badge bg-primary me-2">GET</span>
+                        /api/v1/products
+                    </h6>
+                    <p class="text-muted">Получить список всех активных товаров</p>
+                    <small><strong>Заголовки:</strong> Authorization: Bearer &lt;token&gt;</small>
+                </div>
+
+                <div class="api-endpoint mb-4">
+                    <h6 class="mb-2">
+                        <span class="badge bg-primary me-2">GET</span>
+                        /api/v1/products/&lt;id&gt;
+                    </h6>
+                    <p class="text-muted">Получить товар по ID</p>
+                </div>
+
+                <div class="api-endpoint">
+                    <h6 class="mb-2">
+                        <span class="badge bg-success me-2">POST</span>
+                        /api/v1/products
+                    </h6>
+                    <p class="text-muted">Создать новый товар (только для администраторов)</p>
+                    
+                    <div class="code-block mt-2">
+                        <div class="code-header d-flex justify-content-between align-items-center p-2" 
+                             style="background: var(--bg-tertiary); border-radius: var(--radius-md) var(--radius-md) 0 0;">
+                            <small class="text-muted">Пример запроса:</small>
+                            <button class="btn btn-sm btn-outline-primary" onclick="copyCode('productCreate')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <pre id="productCreate" class="p-3 mb-0" style="background: var(--bg-secondary); border-radius: 0 0 var(--radius-md) var(--radius-md);"><code>{
+  "name": "Новый товар",
+  "description": "Описание товара",
+  "unit": "шт",
+  "price": 100.0,
+  "cost_price": 80.0,
+  "min_stock": 5,
+  "max_stock": 1000,
+  "category_id": 1,
+  "supplier_id": 1
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operations -->
+        <div class="card border-0 shadow-sm mb-4 fade-in-up" id="operations">
+            <div class="card-header bg-white border-0">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-2 me-3" style="background: linear-gradient(135deg, var(--info), var(--primary));">
+                        <i class="fas fa-exchange-alt text-white"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Операции</h5>
+                        <small class="text-muted">Складские операции</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="api-endpoint">
+                    <h6 class="mb-2">
+                        <span class="badge bg-success me-2">POST</span>
+                        /api/v1/operations
+                    </h6>
+                    <p class="text-muted">Создать складскую операцию (только для кладовщиков и администраторов)</p>
+                    
+                    <div class="code-block mt-2">
+                        <div class="code-header d-flex justify-content-between align-items-center p-2" 
+                             style="background: var(--bg-tertiary); border-radius: var(--radius-md) var(--radius-md) 0 0;">
+                            <small class="text-muted">Пример запроса:</small>
+                            <button class="btn btn-sm btn-outline-primary" onclick="copyCode('operationCreate')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <pre id="operationCreate" class="p-3 mb-0" style="background: var(--bg-secondary); border-radius: 0 0 var(--radius-md) var(--radius-md);"><code>{
+  "type": "receipt",
+  "product_id": 1,
+  "quantity": 10,
+  "document_number": "RECEIPT-001",
+  "notes": "Поступление от поставщика"
+}</code></pre>
+                    </div>
+
+                    <div class="mt-3">
+                        <strong>Типы операций:</strong>
+                        <ul class="mt-2">
+                            <li><code class="bg-success text-white px-2 py-1 rounded">receipt</code> - Приём товара</li>
+                            <li><code class="bg-danger text-white px-2 py-1 rounded">shipment</code> - Отгрузка товара</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics -->
+        <div class="card border-0 shadow-sm mb-4 fade-in-up" id="analytics">
+            <div class="card-header bg-white border-0">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-2 me-3" style="background: linear-gradient(135deg, var(--warning), var(--accent));">
+                        <i class="fas fa-chart-line text-white"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Аналитика</h5>
+                        <small class="text-muted">Статистика и отчёты</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="api-endpoint">
+                    <h6 class="mb-2">
+                        <span class="badge bg-primary me-2">GET</span>
+                        /api/v1/analytics/stock
+                    </h6>
+                    <p class="text-muted">Получить аналитику по складу</p>
+                    
+                    <div class="mt-3">
+                        <strong>В ответе содержится:</strong>
+                        <ul class="mt-2">
+                            <li>Общее количество товаров</li>
+                            <li>Общая стоимость запасов</li>
+                            <li>Количество товаров с низким запасом</li>
+                            <li>Количество отсутствующих товаров</li>
+                            <li>Аналитика по категориям</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testing -->
+        <div class="card border-0 shadow-sm fade-in-up">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">Тестирование API</h5>
+            </div>
+            <div class="card-body">
+                <p>Для тестирования API можно использовать Postman, curl или любой другой HTTP клиент.</p>
+                
+                <h6>Пример с curl:</h6>
+                <div class="code-block">
+                    <div class="code-header d-flex justify-content-between align-items-center p-2" 
+                         style="background: var(--bg-tertiary); border-radius: var(--radius-md) var(--radius-md) 0 0;">
+                        <small class="text-muted">Пример использования:</small>
+                        <button class="btn btn-sm btn-outline-primary" onclick="copyCode('curlExample')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <pre id="curlExample" class="p-3 mb-0" style="background: var(--bg-secondary); border-radius: 0 0 var(--radius-md) var(--radius-md);"><code># Получить токен аутентификации
+curl -X POST http://localhost:5000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+
+# Получить список товаров
+curl -X GET http://localhost:5000/api/v1/products \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.api-endpoint {
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--primary);
+}
+
+.code-block {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+}
+
+pre {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+code {
+    color: var(--primary);
+    background: transparent;
+}
+</style>
+
+<script>
+function copyCode(elementId) {
+    const codeElement = document.getElementById(elementId);
+    const text = codeElement.textContent;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('Код скопирован в буфер обмена', 'success');
+    }).catch(err => {
+        console.error('Ошибка копирования: ', err);
+        showNotification('Ошибка копирования', 'error');
+    });
+}
+
+// Плавная прокрутка к разделам
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        if (targetId === '#') return;
+        
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+            window.scrollTo({
+                top: targetElement.offsetTop - 80,
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

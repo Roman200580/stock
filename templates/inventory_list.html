@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-clipboard-check me-2 gradient-text"></i>Инвентаризация
+    </h1>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createInventoryModal">
+        <i class="fas fa-plus me-2"></i>Новая инвентаризация
+    </button>
+</div>
+
+<!-- Статистика инвентаризаций -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-card fade-in-up">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" 
+                     style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(219, 39, 119, 0.1));">
+                    <i class="fas fa-clipboard-list fa-2x" style="color: var(--primary);"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0">{{ inventories|length }}</h4>
+                    <p class="text-muted mb-0 small">Всего инвентаризаций</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 100ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" 
+                     style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.1));">
+                    <i class="fas fa-spinner fa-2x" style="color: var(--warning);"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0">{{ inventories|selectattr('status', 'equalto', 'in_progress')|list|length }}</h4>
+                    <p class="text-muted mb-0 small">В процессе</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 200ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" 
+                     style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.1));">
+                    <i class="fas fa-check-circle fa-2x" style="color: var(--success);"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0">{{ inventories|selectattr('status', 'equalto', 'completed')|list|length }}</h4>
+                    <p class="text-muted mb-0 small">Завершено</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 300ms">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3" 
+                     style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(96, 165, 250, 0.1));">
+                    <i class="fas fa-chart-line fa-2x" style="color: var(--info);"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0">{{ "%.2f"|format(inventories|sum(attribute='total_difference')|abs) }} ₽</h4>
+                    <p class="text-muted mb-0 small">Сумма расхождений</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm fade-in-up">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-history me-2"></i>История инвентаризаций
+        </h5>
+        <div class="input-group" style="width: 300px;">
+            <input type="text" class="form-control" id="inventorySearch" placeholder="Поиск инвентаризации...">
+            <span class="input-group-text" style="background: var(--bg-tertiary); border-color: var(--border-light);">
+                <i class="fas fa-search"></i>
+            </span>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if inventories %}
+        <div class="table-container">
+            <table class="table table-hover mb-0" id="inventoryTable">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Название</th>
+                        <th>Статус</th>
+                        <th>Дата начала</th>
+                        <th>Дата завершения</th>
+                        <th>Расхождения</th>
+                        <th style="width: 120px;">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inventory in inventories %}
+                    <tr class="inventory-row" 
+                        data-name="{{ inventory.name.lower() }}"
+                        data-status="{{ inventory.status.value }}"
+                        data-notes="{{ inventory.notes.lower() if inventory.notes else '' }}">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle p-2 me-3" 
+                                     style="background: linear-gradient(135deg, 
+                                         {% if inventory.status.value == 'completed' %}rgba(16, 185, 129, 0.1){% elif inventory.status.value == 'in_progress' %}rgba(245, 158, 11, 0.1){% else %}rgba(124, 58, 237, 0.1){% endif %}, 
+                                         {% if inventory.status.value == 'completed' %}rgba(52, 211, 153, 0.1){% elif inventory.status.value == 'in_progress' %}rgba(251, 191, 36, 0.1){% else %}rgba(219, 39, 119, 0.1){% endif %});">
+                                    <i class="fas fa-clipboard-check" 
+                                       style="color: {% if inventory.status.value == 'completed' %}var(--success){% elif inventory.status.value == 'in_progress' %}var(--warning){% else %}var(--primary){% endif %};"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ inventory.name }}</strong>
+                                    {% if inventory.notes %}
+                                    <br><small class="text-muted">{{ inventory.notes[:50] }}{% if inventory.notes|length > 50 %}...{% endif %}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-primary 
+                                {% if inventory.status.value == 'planned' %}bg-secondary
+                                {% elif inventory.status.value == 'in_progress' %}bg-warning
+                                {% elif inventory.status.value == 'completed' %}bg-success
+                                {% else %}bg-danger{% endif %}">
+                                {% if inventory.status.value == 'planned' %}Запланирована
+                                {% elif inventory.status.value == 'in_progress' %}В процессе
+                                {% elif inventory.status.value == 'completed' %}Завершена
+                                {% else %}Отменена{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-calendar-day me-2 text-muted"></i>
+                                {% if inventory.start_date %}
+                                <span>{{ inventory.start_date.strftime('%d.%m.%Y %H:%M') }}</span>
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-calendar-check me-2 text-muted"></i>
+                                {% if inventory.end_date %}
+                                <span>{{ inventory.end_date.strftime('%d.%m.%Y %H:%M') }}</span>
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if inventory.total_difference != 0 %}
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-{% if inventory.total_difference > 0 %}arrow-up text-danger{% else %}arrow-down text-success{% endif %} me-2"></i>
+                                <span class="fw-semibold" style="color: {% if inventory.total_difference > 0 %}var(--danger){% else %}var(--success){% endif %};">
+                                    {{ inventory.total_difference|abs }} ₽
+                                </span>
+                            </div>
+                            {% else %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-check me-1"></i>Нет расхождений
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if inventory.status.value in ['planned', 'in_progress'] %}
+                            <a href="{{ url_for('inventory_detail', inventory_id=inventory.id) }}" 
+                               class="btn btn-sm btn-outline-primary w-100">
+                                <i class="fas fa-edit me-1"></i>Продолжить
+                            </a>
+                            {% else %}
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" 
+                                        type="button" data-bs-toggle="dropdown">
+                                    Действия
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('inventory_detail', inventory_id=inventory.id) }}">
+                                            <i class="fas fa-eye me-2"></i>Просмотр
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="exportInventory({{ inventory.id }})">
+                                            <i class="fas fa-file-export me-2"></i>Экспорт
+                                        </a>
+                                    </li>
+                                    {% if current_user.is_admin() %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" 
+                                           onclick="deleteInventory({{ inventory.id }}, '{{ inventory.name }}')">
+                                            <i class="fas fa-trash me-2"></i>Удалить
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="rounded-circle p-4 d-inline-block mb-3" 
+                 style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(219, 39, 119, 0.1));">
+                <i class="fas fa-clipboard-list fa-3x" style="color: var(--primary);"></i>
+            </div>
+            <h5 class="text-muted mb-3">Инвентаризации не найдены</h5>
+            <p class="text-muted mb-4">Создайте первую инвентаризацию для проверки остатков</p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createInventoryModal">
+                <i class="fas fa-plus me-2"></i>Создать инвентаризацию
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Модальное окно создания инвентаризации -->
+<div class="modal fade" id="createInventoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i>Создать инвентаризацию
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_inventory') }}" id="createInventoryForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Название инвентаризации *</label>
+                        <input type="text" class="form-control" name="name" 
+                               value="Инвентаризация {{ now.strftime('%d.%m.%Y') }}" 
+                               required
+                               placeholder="Введите название инвентаризации">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Примечание</label>
+                        <textarea class="form-control" name="notes" rows="3" 
+                                  placeholder="Цель инвентаризации, особенности..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Тип инвентаризации</label>
+                        <select class="form-select" name="inventory_type">
+                            <option value="full">Полная инвентаризация</option>
+                            <option value="selective">Выборочная инвентаризация</option>
+                            <option value="cycle">Циклическая инвентаризация</option>
+                        </select>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="auto_adjust" id="autoAdjust" checked>
+                        <label class="form-check-label" for="autoAdjust">
+                            Автоматически корректировать остатки после завершения
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-2"></i>Создать инвентаризацию
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Поиск инвентаризаций
+    const searchInput = document.getElementById('inventorySearch');
+    const inventoryRows = document.querySelectorAll('.inventory-row');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            inventoryRows.forEach(row => {
+                const name = row.getAttribute('data-name');
+                const notes = row.getAttribute('data-notes');
+                const status = row.getAttribute('data-status');
+                
+                const matches = name.includes(searchTerm) || 
+                              notes.includes(searchTerm) || 
+                              status.includes(searchTerm);
+                
+                row.style.display = matches ? '' : 'none';
+            });
+        });
+    }
+    
+    // Фильтрация по статусу
+    setupStatusFilter();
+});
+
+function setupStatusFilter() {
+    // Создаем кнопки фильтрации, если их нет
+    const header = document.querySelector('.card-header');
+    if (header && !document.getElementById('statusFilter')) {
+        const filterDiv = document.createElement('div');
+        filterDiv.className = 'mt-3';
+        filterDiv.id = 'statusFilter';
+        
+        const buttons = [
+            { text: 'Все', status: 'all', class: 'btn-outline-primary' },
+            { text: 'Запланированные', status: 'planned', class: 'btn-outline-secondary' },
+            { text: 'В процессе', status: 'in_progress', class: 'btn-outline-warning' },
+            { text: 'Завершенные', status: 'completed', class: 'btn-outline-success' }
+        ];
+        
+        buttons.forEach(btn => {
+            const button = document.createElement('button');
+            button.className = `btn btn-sm ${btn.class} me-2 mb-2`;
+            button.textContent = btn.text;
+            button.dataset.status = btn.status;
+            button.addEventListener('click', function() {
+                filterByStatus(btn.status);
+            });
+            filterDiv.appendChild(button);
+        });
+        
+        header.appendChild(filterDiv);
+    }
+}
+
+function filterByStatus(status) {
+    const rows = document.querySelectorAll('.inventory-row');
+    const activeButton = document.querySelector(`[data-status="${status}"]`);
+    
+    // Сбрасываем активную кнопку
+    document.querySelectorAll('#statusFilter button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (activeButton) {
+        activeButton.classList.add('active');
+    }
+    
+    rows.forEach(row => {
+        if (status === 'all') {
+            row.style.display = '';
+        } else {
+            const rowStatus = row.getAttribute('data-status');
+            row.style.display = rowStatus === status ? '' : 'none';
+        }
+    });
+}
+
+function exportInventory(inventoryId) {
+    // Эмуляция экспорта
+    showNotification('Экспорт инвентаризации начат...', 'info');
+    
+    setTimeout(() => {
+        showNotification('Экспорт завершен. Файл скачивается...', 'success');
+        // В реальном приложении здесь будет вызов API
+        window.open(`/export/inventory/${inventoryId}`, '_blank');
+    }, 1000);
+}
+
+function deleteInventory(inventoryId, inventoryName) {
+    if (confirm(`Вы уверены, что хотите удалить инвентаризацию "${inventoryName}"?`)) {
+        fetch(`/inventory/${inventoryId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Инвентаризация удалена', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification('Ошибка при удалении', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Ошибка сети', 'error');
+        });
+    }
+}
+
+// Функция showNotification (добавьте её если нет)
+function showNotification(message, type = 'info') {
+    // Реализация уведомлений
+    console.log(`${type.toUpperCase()}: ${message}`);
+}
+</script>
+{% endblock %}

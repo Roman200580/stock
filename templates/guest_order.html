@@ -1,0 +1,1125 @@
+<!-- templates/guest_order.html -->
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление заказа - StockSync Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Стили из base.html */
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #5b21b6;
+            --primary-light: #8b5cf6;
+            --secondary: #db2777;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #0ea5e9;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+            --shadow-sm: 0 2px 12px rgba(124, 58, 237, 0.08);
+            --shadow-md: 0 8px 30px rgba(124, 58, 237, 0.12);
+            --shadow-lg: 0 20px 50px rgba(124, 58, 237, 0.18);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --transition-fast: 200ms ease;
+            --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --primary-light: #a78bfa;
+            --secondary: #f472b6;
+            --accent: #f9a8d4;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --info: #60a5fa;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-light: #334155;
+            --border-medium: #475569;
+            --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.35);
+            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.45);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background var(--transition-base);
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #0c1425 0%, var(--bg-primary) 100%);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: var(--shadow-md);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: white !important;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-link {
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--radius-md);
+            margin: 0 0.25rem;
+            color: rgba(255, 255, 255, 0.9) !important;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: white;
+            border-radius: 3px 3px 0 0;
+            transform: translateX(-50%);
+            transition: width var(--transition-fast);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .nav-link:hover::before, .nav-link.active::before {
+            width: 60%;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 60px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="%23ffffff" opacity="0.1"><polygon points="0,0 1000,50 1000,100 0,100"/></svg>');
+            background-size: cover;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-base);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .btn {
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            padding: 0.75rem 1.75rem;
+            border: 2px solid transparent;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(124, 58, 237, 0.35);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            border: none;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-outline-primary {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            transform: translateY(-3px);
+            border-color: transparent;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 0.85rem 1.2rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all var(--transition-fast);
+            font-weight: 500;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--danger), var(--warning));
+            color: white;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .order-step {
+            position: relative;
+            padding-left: 40px;
+            margin-bottom: 30px;
+        }
+
+        .order-step::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: -30px;
+            width: 2px;
+            background: var(--border-light);
+        }
+
+        .order-step:last-child::before {
+            display: none;
+        }
+
+        .order-step-number {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--text-secondary);
+            z-index: 1;
+        }
+
+        .order-step.active .order-step-number {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .order-step.completed .order-step-number {
+            background: var(--success);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('public_catalog') }}">
+                <i class="fas fa-layer-group me-2"></i>StockSync Pro
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link" href="{{ url_for('public_catalog') }}">
+                        <i class="fas fa-store me-1"></i>Каталог
+                    </a>
+                    <a class="nav-link position-relative" href="{{ url_for('guest_cart') }}">
+                        <i class="fas fa-shopping-cart me-1"></i>Корзина
+                        <span class="cart-badge" id="navCartCount">0</span>
+                    </a>
+                    <a class="nav-link active" href="{{ url_for('guest_order') }}">
+                        <i class="fas fa-clipboard-list me-1"></i>Оформить заказ
+                    </a>
+                    <a class="nav-link" href="{{ url_for('login') }}">
+                        <i class="fas fa-sign-in-alt me-1"></i>Вход для сотрудников
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Герой-секция -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-5 fw-bold mb-3">Оформление заказа</h1>
+                    <p class="lead mb-0">Заполните форму ниже и мы свяжемся с вами для подтверждения заказа</p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div class="rounded-circle p-4 d-inline-block" 
+                         style="background: rgba(255, 255, 255, 0.2); border: 3px solid rgba(255, 255, 255, 0.3);">
+                        <i class="fas fa-clipboard-check fa-4x text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Процесс оформления -->
+    <div class="container my-5">
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="order-step active" id="step1">
+                                    <div class="order-step-number">1</div>
+                                    <h6 class="mb-1">Информация о заказчике</h6>
+                                    <small class="text-muted">Заполните контактные данные</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="order-step" id="step2">
+                                    <div class="order-step-number">2</div>
+                                    <h6 class="mb-1">Доставка</h6>
+                                    <small class="text-muted">Выберите способ доставки</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="order-step" id="step3">
+                                    <div class="order-step-number">3</div>
+                                    <h6 class="mb-1">Оплата</h6>
+                                    <small class="text-muted">Выберите способ оплаты</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="order-step" id="step4">
+                                    <div class="order-step-number">4</div>
+                                    <h6 class="mb-1">Подтверждение</h6>
+                                    <small class="text-muted">Проверьте и отправьте заказ</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Шаг 1: Информация о заказчике -->
+                <div class="card border-0 shadow-sm mb-4 fade-in-up" id="customerInfoCard">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user me-2"></i>Информация о заказчике
+                        </h5>
+                        <span class="badge bg-primary">Шаг 1 из 4</span>
+                    </div>
+                    <div class="card-body">
+                        <form id="customerForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">ФИО *</label>
+                                    <input type="text" class="form-control" name="customer_name" required
+                                           placeholder="Иванов Иван Иванович">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email *</label>
+                                    <input type="email" class="form-control" name="customer_email" required
+                                           placeholder="example@email.com">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Телефон *</label>
+                                    <input type="tel" class="form-control" name="customer_phone" required
+                                           placeholder="+7 (999) 123-45-67">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Компания</label>
+                                    <input type="text" class="form-control" name="customer_company"
+                                           placeholder="Название вашей компании">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Шаг 2: Доставка -->
+                <div class="card border-0 shadow-sm mb-4 d-none" id="deliveryCard">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-truck me-2"></i>Доставка
+                        </h5>
+                        <span class="badge bg-primary">Шаг 2 из 4</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h6 class="mb-3">Способ доставки</h6>
+                            <div class="row g-3" id="deliveryMethods">
+                                <div class="col-md-6">
+                                    <div class="card border delivery-option active" data-type="pickup">
+                                        <div class="card-body">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="delivery_type" 
+                                                       value="pickup" checked id="pickup">
+                                                <label class="form-check-label" for="pickup">
+                                                    <strong>Самовывоз</strong>
+                                                    <div class="text-muted small mt-1">г. Москва, ул. Примерная, д. 123</div>
+                                                    <div class="text-success small mt-1">Бесплатно</div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border delivery-option" data-type="courier">
+                                        <div class="card-body">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="delivery_type" 
+                                                       value="courier" id="courier">
+                                                <label class="form-check-label" for="courier">
+                                                    <strong>Курьерская доставка</strong>
+                                                    <div class="text-muted small mt-1">По Москве и области</div>
+                                                    <div class="text-success small mt-1">500 ₽</div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Адрес доставки</label>
+                            <textarea class="form-control" name="delivery_address" rows="3"
+                                      placeholder="Укажите полный адрес для доставки..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Желаемая дата доставки</label>
+                            <input type="date" class="form-control" name="delivery_date"
+                                   min="{{ now.strftime('%Y-%m-%d') }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Комментарий для курьера</label>
+                            <textarea class="form-control" name="delivery_notes" rows="2"
+                                      placeholder="Дополнительные указания..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Шаг 3: Оплата -->
+                <div class="card border-0 shadow-sm mb-4 d-none" id="paymentCard">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-credit-card me-2"></i>Оплата
+                        </h5>
+                        <span class="badge bg-primary">Шаг 3 из 4</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h6 class="mb-3">Способ оплаты</h6>
+                            <div class="row g-3" id="paymentMethods">
+                                <div class="col-md-6">
+                                    <div class="card border payment-option active" data-type="cash">
+                                        <div class="card-body">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="payment_type" 
+                                                       value="cash" checked id="cash">
+                                                <label class="form-check-label" for="cash">
+                                                    <strong>Наличными</strong>
+                                                    <div class="text-muted small mt-1">При получении заказа</div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border payment-option" data-type="card">
+                                        <div class="card-body">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="payment_type" 
+                                                       value="card" id="card">
+                                                <label class="form-check-label" for="card">
+                                                    <strong>Банковской картой</strong>
+                                                    <div class="text-muted small mt-1">Онлайн оплата</div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="cardPaymentFields" class="d-none">
+                            <h6 class="mb-3">Данные карты</h6>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label">Номер карты</label>
+                                    <input type="text" class="form-control" name="card_number"
+                                           placeholder="1234 5678 9012 3456">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Срок действия</label>
+                                    <input type="text" class="form-control" name="card_expiry"
+                                           placeholder="ММ/ГГ">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">CVV</label>
+                                    <input type="text" class="form-control" name="card_cvv"
+                                           placeholder="123">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Шаг 4: Подтверждение -->
+                <div class="card border-0 shadow-sm mb-4 d-none" id="confirmationCard">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-check-circle me-2"></i>Подтверждение заказа
+                        </h5>
+                        <span class="badge bg-primary">Шаг 4 из 4</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Пожалуйста, проверьте все данные перед отправкой заказа
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="mb-3">Информация о заказе</h6>
+                            <div class="row g-3" id="orderSummaryInfo">
+                                <!-- Информация будет заполнена JavaScript -->
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="mb-3">Примечание к заказу</h6>
+                            <textarea class="form-control" name="notes" rows="3"
+                                      placeholder="Дополнительная информация..."></textarea>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">
+                                Я согласен с <a href="#" class="text-decoration-none">условиями обработки персональных данных</a> и <a href="#" class="text-decoration-none">правилами возврата товара</a>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Товары в заказе -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-boxes me-2"></i>Товары в заказе
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="orderItems">
+                            <!-- Товары будут заполнены JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Итоги заказа -->
+                <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-receipt me-2"></i>Итоги заказа
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="orderSummary">
+                            <!-- Итоги будут заполнены JavaScript -->
+                        </div>
+                        
+                        <div class="border-top pt-3 mt-3">
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-success btn-lg" id="nextStepBtn">
+                                    <i class="fas fa-arrow-right me-2"></i>Далее
+                                </button>
+                                <button type="button" class="btn btn-outline-primary d-none" id="prevStepBtn">
+                                    <i class="fas fa-arrow-left me-2"></i>Назад
+                                </button>
+                                <button type="button" class="btn btn-success btn-lg d-none" id="submitOrderBtn">
+                                    <i class="fas fa-check-circle me-2"></i>Отправить заказ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Помощь -->
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">
+                            <i class="fas fa-question-circle me-2"></i>Нужна помощь?
+                        </h6>
+                        <ul class="small text-muted mb-0">
+                            <li>Телефон поддержки: +7 (999) 123-45-67</li>
+                            <li>Email: support@stocksync.pro</li>
+                            <li>Работаем с 9:00 до 21:00</li>
+                            <li>Консультация по заказу бесплатно</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Футер -->
+    <footer class="py-4 mt-5" style="background: var(--bg-card); border-top: 1px solid var(--border-light);">
+        <div class="container">
+            <div class="text-center">
+                <p class="mb-0 small text-muted">&copy; {{ current_year }} StockSync Pro. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let cart = JSON.parse(localStorage.getItem('guest_cart')) || [];
+        let currentStep = 1;
+        let orderData = {};
+        
+        function updateCartDisplay() {
+            const navCartCount = document.getElementById('navCartCount');
+            if (navCartCount) {
+                navCartCount.textContent = cart.length;
+            }
+        }
+        
+        function updateOrderDisplay() {
+            const orderItems = document.getElementById('orderItems');
+            const orderSummary = document.getElementById('orderSummary');
+            
+            if (cart.length === 0) {
+                orderItems.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <div class="rounded-circle p-4 d-inline-block mb-3" 
+                             style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(219, 39, 119, 0.2));">
+                            <i class="fas fa-shopping-cart fa-3x" style="color: var(--primary);"></i>
+                        </div>
+                        <h5 class="mb-3">Корзина пуста</h5>
+                        <p class="mb-4">Добавьте товары из корзины или выберите из каталога</p>
+                        <a href="{{ url_for('public_catalog') }}" class="btn btn-primary">
+                            <i class="fas fa-boxes me-2"></i>Перейти в каталог
+                        </a>
+                    </div>
+                `;
+                
+                orderSummary.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <p>Товары не добавлены</p>
+                    </div>
+                `;
+                
+                disableNavigation();
+                return;
+            }
+            
+            let itemsHtml = '';
+            let summaryHtml = '';
+            let subtotal = 0;
+            let deliveryCost = 0;
+            
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                
+                itemsHtml += `
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="d-flex align-items-start" style="flex: 1;">
+                                <div class="rounded-circle p-2 me-3" 
+                                     style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(219, 39, 119, 0.2));">
+                                    <i class="fas fa-box" style="color: var(--primary);"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">${item.name}</h6>
+                                    <small class="text-muted">${item.price} ₽ / ${item.unit}</small>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    onclick="removeFromOrder(${index})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="d-flex align-items-center mt-2">
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                        onclick="changeOrderQuantity(${index}, -1)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" class="form-control form-control-sm mx-2 text-center" 
+                                       value="${item.quantity}" min="1" max="${item.maxQuantity}" 
+                                       style="width: 80px;" readonly>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                        onclick="changeOrderQuantity(${index}, 1)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div class="ms-3">
+                                <strong>${itemTotal.toFixed(2)} ₽</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Расчет доставки
+            deliveryCost = subtotal >= 5000 ? 0 : 500;
+            const total = subtotal + deliveryCost;
+            
+            summaryHtml = `
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Товаров (${cart.length}):</span>
+                        <strong>${subtotal.toFixed(2)} ₽</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Доставка:</span>
+                        <strong id="deliverySummary">${deliveryCost.toFixed(2)} ₽</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Скидка:</span>
+                        <strong style="color: var(--success);">0.00 ₽</strong>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="h5">Итого:</span>
+                        <strong class="h3 text-primary" id="finalTotal">${total.toFixed(2)} ₽</strong>
+                    </div>
+                </div>
+                <div class="alert alert-success small mb-0">
+                    <i class="fas fa-shipping-fast me-2"></i>
+                    ${subtotal >= 5000 ? 'Бесплатная доставка!' : `Добавьте товаров на ${(5000 - subtotal).toFixed(2)} ₽ для бесплатной доставки`}
+                </div>
+            `;
+            
+            orderItems.innerHTML = itemsHtml;
+            orderSummary.innerHTML = summaryHtml;
+            enableNavigation();
+            
+            // Сохраняем данные для итогов
+            orderData.subtotal = subtotal;
+            orderData.deliveryCost = deliveryCost;
+            orderData.total = total;
+        }
+        
+        function removeFromOrder(index) {
+            if (confirm('Удалить товар из заказа?')) {
+                cart.splice(index, 1);
+                updateOrderDisplay();
+                updateCartDisplay();
+                localStorage.setItem('guest_cart', JSON.stringify(cart));
+            }
+        }
+        
+        function changeOrderQuantity(index, delta) {
+            const product = cart[index];
+            const newQuantity = product.quantity + delta;
+            
+            if (newQuantity >= 1 && newQuantity <= product.maxQuantity) {
+                product.quantity = newQuantity;
+                updateOrderDisplay();
+                localStorage.setItem('guest_cart', JSON.stringify(cart));
+            }
+        }
+        
+        function disableNavigation() {
+            document.getElementById('nextStepBtn').disabled = true;
+            document.getElementById('submitOrderBtn').disabled = true;
+        }
+        
+        function enableNavigation() {
+            document.getElementById('nextStepBtn').disabled = false;
+            document.getElementById('submitOrderBtn').disabled = false;
+        }
+        
+        function goToStep(step) {
+            // Скрываем все шаги
+            document.getElementById('customerInfoCard').classList.add('d-none');
+            document.getElementById('deliveryCard').classList.add('d-none');
+            document.getElementById('paymentCard').classList.add('d-none');
+            document.getElementById('confirmationCard').classList.add('d-none');
+            
+            // Скрываем кнопки
+            document.getElementById('nextStepBtn').classList.add('d-none');
+            document.getElementById('prevStepBtn').classList.add('d-none');
+            document.getElementById('submitOrderBtn').classList.add('d-none');
+            
+            // Обновляем шаги
+            document.querySelectorAll('.order-step').forEach((el, index) => {
+                el.classList.remove('active', 'completed');
+                if (index + 1 < step) {
+                    el.classList.add('completed');
+                } else if (index + 1 === step) {
+                    el.classList.add('active');
+                }
+            });
+            
+            // Показываем нужный шаг
+            if (step === 1) {
+                document.getElementById('customerInfoCard').classList.remove('d-none');
+                document.getElementById('nextStepBtn').classList.remove('d-none');
+            } else if (step === 2) {
+                document.getElementById('deliveryCard').classList.remove('d-none');
+                document.getElementById('prevStepBtn').classList.remove('d-none');
+                document.getElementById('nextStepBtn').classList.remove('d-none');
+            } else if (step === 3) {
+                document.getElementById('paymentCard').classList.remove('d-none');
+                document.getElementById('prevStepBtn').classList.remove('d-none');
+                document.getElementById('nextStepBtn').classList.remove('d-none');
+            } else if (step === 4) {
+                document.getElementById('confirmationCard').classList.remove('d-none');
+                document.getElementById('prevStepBtn').classList.remove('d-none');
+                document.getElementById('submitOrderBtn').classList.remove('d-none');
+                updateConfirmationStep();
+            }
+            
+            currentStep = step;
+        }
+        
+        function nextStep() {
+            if (currentStep === 1 && !validateCustomerInfo()) {
+                return;
+            }
+            
+            if (currentStep < 4) {
+                goToStep(currentStep + 1);
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 1) {
+                goToStep(currentStep - 1);
+            }
+        }
+        
+        function validateCustomerInfo() {
+            const form = document.getElementById('customerForm');
+            const name = form.querySelector('input[name="customer_name"]').value.trim();
+            const email = form.querySelector('input[name="customer_email"]').value.trim();
+            const phone = form.querySelector('input[name="customer_phone"]').value.trim();
+            
+            if (!name) {
+                showNotification('Введите ФИО', 'error');
+                return false;
+            }
+            
+            if (!email || !validateEmail(email)) {
+                showNotification('Введите корректный email', 'error');
+                return false;
+            }
+            
+            if (!phone) {
+                showNotification('Введите телефон', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function updateConfirmationStep() {
+            const form = document.getElementById('customerForm');
+            const deliveryType = document.querySelector('input[name="delivery_type"]:checked');
+            const paymentType = document.querySelector('input[name="payment_type"]:checked');
+            
+            let infoHtml = `
+                <div class="col-md-6">
+                    <h6 class="small text-muted mb-1">Контактные данные</h6>
+                    <p class="mb-2"><strong>${form.querySelector('input[name="customer_name"]').value}</strong></p>
+                    <p class="small mb-1">${form.querySelector('input[name="customer_email"]').value}</p>
+                    <p class="small mb-0">${form.querySelector('input[name="customer_phone"]').value}</p>
+                </div>
+            `;
+            
+            if (deliveryType) {
+                infoHtml += `
+                    <div class="col-md-6">
+                        <h6 class="small text-muted mb-1">Доставка</h6>
+                        <p class="mb-2"><strong>${deliveryType.value === 'pickup' ? 'Самовывоз' : 'Курьерская доставка'}</strong></p>
+                        ${deliveryType.value === 'courier' ? `<p class="small mb-0">${document.querySelector('textarea[name="delivery_address"]').value || 'Адрес не указан'}</p>` : ''}
+                    </div>
+                `;
+            }
+            
+            if (paymentType) {
+                infoHtml += `
+                    <div class="col-md-6">
+                        <h6 class="small text-muted mb-1">Оплата</h6>
+                        <p class="mb-0"><strong>${paymentType.value === 'cash' ? 'Наличными' : 'Банковской картой'}</strong></p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('orderSummaryInfo').innerHTML = infoHtml;
+        }
+        
+        function submitOrder() {
+            if (!document.getElementById('agreeTerms').checked) {
+                showNotification('Необходимо согласиться с условиями', 'error');
+                return;
+            }
+            
+            if (cart.length === 0) {
+                showNotification('Добавьте товары в заказ', 'error');
+                return;
+            }
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ url_for("guest_order") }}';
+            
+            // Добавляем данные клиента
+            const customerForm = document.getElementById('customerForm');
+            Array.from(customerForm.elements).forEach(element => {
+                if (element.name) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = element.name;
+                    input.value = element.value;
+                    form.appendChild(input);
+                }
+            });
+            
+            // Добавляем данные доставки и оплаты
+            const deliveryType = document.querySelector('input[name="delivery_type"]:checked');
+            const paymentType = document.querySelector('input[name="payment_type"]:checked');
+            
+            if (deliveryType) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'delivery_type';
+                input.value = deliveryType.value;
+                form.appendChild(input);
+                
+                if (deliveryType.value === 'courier') {
+                    const addressInput = document.createElement('input');
+                    addressInput.type = 'hidden';
+                    addressInput.name = 'delivery_address';
+                    addressInput.value = document.querySelector('textarea[name="delivery_address"]').value;
+                    form.appendChild(addressInput);
+                }
+            }
+            
+            if (paymentType) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'payment_type';
+                input.value = paymentType.value;
+                form.appendChild(input);
+            }
+            
+            // Добавляем товары
+            cart.forEach((item, index) => {
+                const productIdInput = document.createElement('input');
+                productIdInput.type = 'hidden';
+                productIdInput.name = 'product_id[]';
+                productIdInput.value = item.id;
+                form.appendChild(productIdInput);
+                
+                const quantityInput = document.createElement('input');
+                quantityInput.type = 'hidden';
+                quantityInput.name = 'quantity[]';
+                quantityInput.value = item.quantity;
+                form.appendChild(quantityInput);
+            });
+            
+            // Добавляем примечание
+            const notesInput = document.createElement('input');
+            notesInput.type = 'hidden';
+            notesInput.name = 'notes';
+            notesInput.value = document.querySelector('textarea[name="notes"]').value;
+            form.appendChild(notesInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+        
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        function showNotification(message, type = 'info') {
+            // Реализация уведомлений
+            alert(`${type}: ${message}`);
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            updateOrderDisplay();
+            updateCartDisplay();
+            goToStep(1);
+            
+            // Обработчики для кнопок
+            document.getElementById('nextStepBtn').addEventListener('click', nextStep);
+            document.getElementById('prevStepBtn').addEventListener('click', prevStep);
+            document.getElementById('submitOrderBtn').addEventListener('click', submitOrder);
+            
+            // Обработчики для опций доставки
+            document.querySelectorAll('.delivery-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.delivery-option').forEach(el => el.classList.remove('active'));
+                    this.classList.add('active');
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                    
+                    // Обновляем стоимость доставки в итогах
+                    const deliveryCost = radio.value === 'pickup' ? 0 : 500;
+                    const subtotal = orderData.subtotal || 0;
+                    const total = subtotal + deliveryCost;
+                    
+                    document.getElementById('deliverySummary').textContent = deliveryCost.toFixed(2) + ' ₽';
+                    document.getElementById('finalTotal').textContent = total.toFixed(2) + ' ₽';
+                });
+            });
+            
+            // Обработчики для опций оплаты
+            document.querySelectorAll('.payment-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('active'));
+                    this.classList.add('active');
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                    
+                    // Показываем/скрываем поля для карты
+                    const cardFields = document.getElementById('cardPaymentFields');
+                    if (radio.value === 'card') {
+                        cardFields.classList.remove('d-none');
+                    } else {
+                        cardFields.classList.add('d-none');
+                    }
+                });
+            });
+            
+            // Автоматический расчет доставки при изменении товаров
+            setInterval(() => {
+                const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const deliveryCost = subtotal >= 5000 ? 0 : 500;
+                const total = subtotal + deliveryCost;
+                
+                if (orderData.subtotal !== subtotal) {
+                    orderData.subtotal = subtotal;
+                    orderData.deliveryCost = deliveryCost;
+                    orderData.total = total;
+                    
+                    document.getElementById('deliverySummary').textContent = deliveryCost.toFixed(2) + ' ₽';
+                    document.getElementById('finalTotal').textContent = total.toFixed(2) + ' ₽';
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

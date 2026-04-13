@@ -1,0 +1,446 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="fas fa-boxes me-2"></i>Управление товарами</h1>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+        <i class="fas fa-plus me-2"></i>Добавить товар
+    </button>
+</div>
+
+<!-- Поиск и фильтры -->
+<div class="card border-0 shadow-sm mb-4 fade-in-up">
+    <div class="card-body">
+        <form method="GET" class="row g-3" id="searchForm">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text" style="background: var(--bg-tertiary); border-color: var(--border-light);">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" class="form-control" name="search" placeholder="Поиск по названию, SKU..." 
+                           value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="category_id" onchange="submitSearchForm()">
+                    <option value="">Все категории</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_id == category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="supplier_id" onchange="submitSearchForm()">
+                    <option value="">Все поставщики</option>
+                    {% for supplier in suppliers %}
+                    <option value="{{ supplier.id }}" {% if supplier_id == supplier.id %}selected{% endif %}>
+                        {{ supplier.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="fas fa-search me-2"></i>Найти
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Таблица товаров -->
+<div class="card border-0 shadow-sm fade-in-up">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Список товаров</h5>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="lowStockOnly" 
+                   onchange="filterLowStock()" {% if low_stock %}checked{% endif %}>
+            <label class="form-check-label" for="lowStockOnly">
+                Только низкий запас
+            </label>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if products %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Изображение</th>
+                        <th>SKU</th>
+                        <th>Название</th>
+                        <th>Категория</th>
+                        <th>Остаток</th>
+                        <th>Ед. изм.</th>
+                        <th>Цена</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    {% set reserved = namespace(value=0) %}
+                    {% for order_item in product.order_items if order_item.order.status.value in ['pending', 'approved'] %}
+                        {% set reserved.value = reserved.value + order_item.quantity %}
+                    {% endfor %}
+                    {% set available = product.current_stock - reserved.value %}
+                    
+                    <tr class="slide-in-right" style="animation-delay: {{ loop.index * 50 }}ms">
+                        <td>
+                            <div class="product-image-placeholder rounded d-flex align-items-center justify-content-center"
+                                 style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white;">
+                                <i class="fas fa-box"></i>
+                            </div>
+                        </td>
+                        <td>
+                            <code>{{ product.sku }}</code>
+                        </td>
+                        <td>
+                            <strong>{{ product.name }}</strong>
+                            {% if product.description %}
+                            <br><small class="text-muted">{{ product.description[:50] }}{% if product.description|length > 50 %}...{% endif %}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ product.category.name if product.category else '—' }}</td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="badge bg-{% if product.current_stock <= 3 %}danger{% elif product.current_stock <= product.min_stock %}warning{% else %}success{% endif %} mb-1">
+                                    {{ product.current_stock }}
+                                </span>
+                                {% if reserved.value > 0 %}
+                                <small class="text-muted">резерв: {{ reserved.value }}</small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ product.unit }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ "%.2f"|format(product.price) }} ₽</strong>
+                        </td>
+                        <td>
+                            {% if product.is_active %}
+                            <span class="badge bg-success">Активен</span>
+                            {% else %}
+                            <span class="badge bg-danger">Неактивен</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary" 
+                                        onclick="editProduct({{ product.id }})" title="Редактировать">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-info" 
+                                        onclick="showQuickView({{ product.id }})" title="Быстрый просмотр">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-{{ 'warning' if product.is_active else 'success' }}"
+                                        onclick="toggleProductStatus({{ product.id }}, {{ product.is_active|tojson }})"
+                                        title="{{ 'Деактивировать' if product.is_active else 'Активировать' }}">
+                                    {% if product.is_active %}
+                                    <i class="fas fa-ban"></i>
+                                    {% else %}
+                                    <i class="fas fa-check"></i>
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Товары не найдены</p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="fas fa-plus me-2"></i>Добавить первый товар
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Модальное окно добавления товара -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить новый товар</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_product') }}" enctype="multipart/form-data" id="productForm">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Название товара *</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Категория</label>
+                            <select class="form-select" name="category_id">
+                                <option value="">Без категории</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Поставщик</label>
+                            <select class="form-select" name="supplier_id">
+                                <option value="">Без поставщика</option>
+                                {% for supplier in suppliers %}
+                                <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Единица измерения *</label>
+                            <input type="text" class="form-control" name="unit" placeholder="шт, кг, м..." required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Начальный остаток</label>
+                            <input type="number" class="form-control" name="current_stock" value="0" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Цена (₽)</label>
+                            <input type="number" step="0.01" class="form-control" name="price" value="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Себестоимость (₽)</label>
+                            <input type="number" step="0.01" class="form-control" name="cost_price" value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Мин. запас</label>
+                            <input type="number" class="form-control" name="min_stock" value="5">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Макс. запас</label>
+                            <input type="number" class="form-control" name="max_stock" value="1000">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Штрих-код</label>
+                            <input type="text" class="form-control" name="barcode">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Место хранения</label>
+                            <input type="text" class="form-control" name="location" placeholder="Стеллаж А, Полка 1...">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Описание</label>
+                            <textarea class="form-control" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Добавить товар</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно быстрого просмотра -->
+<div class="modal fade" id="quickViewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Информация о товаре</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="quickViewContent">
+                <!-- Контент будет загружен через JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика по остаткам -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="stat-card fade-in-up">
+            <div class="card-body text-center">
+                <h3 class="text-primary">{{ products|sum(attribute='current_stock') }}</h3>
+                <p class="text-muted mb-0">Всего единиц на складе</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 100ms">
+            <div class="card-body text-center">
+                <h3 class="text-success">{{ products|selectattr('is_active')|list|length }}</h3>
+                <p class="text-muted mb-0">Активных товаров</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 200ms">
+            <div class="card-body text-center">
+                {% set low_stock_count = 0 %}
+                {% for product in products %}
+                    {% if product.is_active and product.current_stock <= product.min_stock %}
+                        {% set low_stock_count = low_stock_count + 1 %}
+                    {% endif %}
+                {% endfor %}
+                <h3 class="text-warning">{{ low_stock_count }}</h3>
+                <p class="text-muted mb-0">Товаров с низким запасом</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 300ms">
+            <div class="card-body text-center">
+                {% set out_of_stock_count = products|selectattr('is_active')|selectattr('current_stock', '==', 0)|list|length %}
+                <h3 class="text-danger">{{ out_of_stock_count }}</h3>
+                <p class="text-muted mb-0">Товаров нет в наличии</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function submitSearchForm() {
+    document.getElementById('searchForm').submit();
+}
+
+function filterLowStock() {
+    const lowStockOnly = document.getElementById('lowStockOnly').checked;
+    const url = new URL(window.location.href);
+    
+    if (lowStockOnly) {
+        url.searchParams.set('low_stock', 'true');
+    } else {
+        url.searchParams.delete('low_stock');
+    }
+    
+    window.location.href = url.toString();
+}
+
+function editProduct(productId) {
+    window.location.href = "{{ url_for('edit_product_form', product_id=0) }}".replace('0', productId);
+}
+
+function showQuickView(productId) {
+    // Имитация загрузки данных
+    const content = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary mb-3"></div>
+            <p>Загрузка информации...</p>
+        </div>
+    `;
+    
+    document.getElementById('quickViewContent').innerHTML = content;
+    
+    const modal = new bootstrap.Modal(document.getElementById('quickViewModal'));
+    modal.show();
+    
+    // Имитация задержки загрузки
+    setTimeout(() => {
+        const detailedContent = `
+            <div class="text-center mb-4">
+                <div class="product-image-placeholder rounded-circle d-inline-flex align-items-center justify-content-center"
+                     style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white;">
+                    <i class="fas fa-box fa-2x"></i>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <strong>Товар ID:</strong> ${productId}
+            </div>
+            
+            <div class="mb-3">
+                <strong>Название:</strong><br>
+                Пример товара #${productId}
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-6">
+                    <strong>Остаток:</strong><br>
+                    <span class="badge bg-success">100 шт</span>
+                </div>
+                <div class="col-6">
+                    <strong>Цена:</strong><br>
+                    1,500.00 ₽
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-6">
+                    <strong>Категория:</strong><br>
+                    Электроника
+                </div>
+                <div class="col-6">
+                    <strong>Статус:</strong><br>
+                    <span class="badge bg-success">В наличии</span>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <button type="button" class="btn btn-primary" onclick="editProduct(${productId})">
+                    <i class="fas fa-edit me-2"></i>Редактировать
+                </button>
+            </div>
+        `;
+        document.getElementById('quickViewContent').innerHTML = detailedContent;
+    }, 800);
+}
+
+function toggleProductStatus(productId, isActive) {
+    const action = isActive ? 'Деактивировать' : 'Активировать';
+    
+    if (confirm(`Вы уверены, что хотите ${action.toLowerCase()} этот товар?`)) {
+        const url = isActive ? `/products/${productId}/deactivate` : `/products/${productId}/activate`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                showNotification('Ошибка при изменении статуса товара', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Ошибка при изменении статуса товара', 'error');
+        });
+    }
+}
+
+// Валидация формы товара
+document.addEventListener('DOMContentLoaded', function() {
+    const productForm = document.getElementById('productForm');
+    if (productForm) {
+        productForm.addEventListener('submit', function(e) {
+            const nameInput = this.querySelector('input[name="name"]');
+            const unitInput = this.querySelector('input[name="unit"]');
+            
+            if (!nameInput.value.trim()) {
+                e.preventDefault();
+                showNotification('Введите название товара', 'warning');
+                nameInput.focus();
+                return;
+            }
+            
+            if (!unitInput.value.trim()) {
+                e.preventDefault();
+                showNotification('Введите единицу измерения', 'warning');
+                unitInput.focus();
+                return;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

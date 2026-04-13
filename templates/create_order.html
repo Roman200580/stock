@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="fas fa-plus-circle me-2"></i>Создание заказа</h1>
+    <a href="{{ url_for('orders') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Назад к заказам
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm fade-in-up">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">Добавление товаров</h5>
+            </div>
+            <div class="card-body">
+                <!-- Поиск товаров -->
+                <div class="mb-4">
+                    <div class="input-group">
+                        <span class="input-group-text" style="background: var(--bg-tertiary); border-color: var(--border-light);">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="productSearch" 
+                               placeholder="Поиск товаров по названию или SKU...">
+                    </div>
+                </div>
+
+                <!-- Список товаров -->
+                <div class="row g-3 mb-4" id="productsList">
+                    {% for product in products %}
+                    <div class="col-md-6 col-lg-4 product-item" data-name="{{ product.name.lower() }}" data-sku="{{ product.sku.lower() }}">
+                        <div class="card h-100 border slide-in-right" style="animation-delay: {{ loop.index * 50 }}ms">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ product.name }}</h6>
+                                <div class="mb-2">
+                                    <small class="text-muted">SKU: {{ product.sku }}</small>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="badge bg-{% if product.current_stock > 0 %}success{% else %}danger{% endif %}">
+                                        {{ product.current_stock }} {{ product.unit }} в наличии
+                                    </span>
+                                </div>
+                                <div class="mb-3">
+                                    <strong class="h5 text-primary">{{ "%.2f"|format(product.price) }} ₽</strong>
+                                    <small class="text-muted">/{{ product.unit }}</small>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0">
+                                {% if product.current_stock > 0 %}
+                                <button type="button" class="btn btn-outline-primary w-100 add-to-order"
+                                        data-product-id="{{ product.id }}"
+                                        data-product-name="{{ product.name }}"
+                                        data-product-price="{{ product.price }}"
+                                        data-product-unit="{{ product.unit }}"
+                                        data-max-quantity="{{ product.current_stock }}">
+                                    <i class="fas fa-cart-plus me-2"></i>Добавить в заказ
+                                </button>
+                                {% else %}
+                                <button class="btn btn-outline-secondary w-100" disabled>
+                                    <i class="fas fa-times me-2"></i>Нет в наличии
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Выбранные товары -->
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="card-title mb-0 d-flex align-items-center">
+                            <i class="fas fa-shopping-cart me-2"></i>
+                            Товары в заказе
+                            <span class="badge bg-light text-primary ms-2" id="selectedCount">0</span>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" id="orderForm">
+                            <div id="selectedProducts">
+                                <div class="text-center text-muted py-3" id="emptyCartMessage">
+                                    <i class="fas fa-cart-arrow-down fa-2x mb-2"></i>
+                                    <p>Добавьте товары из списка выше</p>
+                                </div>
+                            </div>
+
+                            <div class="border-top pt-3 mt-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5>Итого:</h5>
+                                    </div>
+                                    <div class="col-md-6 text-end">
+                                        <h4 class="text-primary" id="totalAmount">0.00 ₽</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Информация о клиенте -->
+        <div class="card border-0 shadow-sm mb-4 fade-in-up">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    Информация о клиенте
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="customerForm">
+                    <div class="mb-3">
+                        <label class="form-label">ФИО клиента *</label>
+                        <input type="text" class="form-control" name="customer_name" required
+                               value="{{ current_user.username if current_user.is_external() }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-control" name="customer_email" required
+                               value="{{ current_user.email if current_user.is_external() }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Телефон</label>
+                        <input type="tel" class="form-control" name="customer_phone">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Примечание к заказу</label>
+                        <textarea class="form-control" name="notes" rows="3" 
+                                  placeholder="Дополнительная информация..."></textarea>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Действия -->
+        <div class="card border-0 shadow-sm fade-in-up">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Действия
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-success btn-lg" onclick="submitOrder()" id="submitOrderBtn" disabled>
+                        <i class="fas fa-check-circle me-2"></i>Создать заказ
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="clearOrder()">
+                        <i class="fas fa-trash me-2"></i>Очистить заказ
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Подсказки -->
+        <div class="card border-0 shadow-sm mt-4 fade-in-up">
+            <div class="card-body">
+                <h6 class="card-title">Как создать заказ?</h6>
+                <ol class="small text-muted">
+                    <li>Найдите нужные товары в списке</li>
+                    <li>Нажмите "Добавить в заказ"</li>
+                    <li>Укажите количество для каждого товара</li>
+                    <li>Заполните информацию о клиенте</li>
+                    <li>Нажмите "Создать заказ"</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedProducts = [];
+
+// Фильтрация товаров
+function filterProducts() {
+    const searchText = document.getElementById('productSearch').value.toLowerCase();
+    const productItems = document.querySelectorAll('.product-item');
+    
+    productItems.forEach(item => {
+        const productName = item.getAttribute('data-name');
+        const productSku = item.getAttribute('data-sku');
+        
+        if (productName.includes(searchText) || productSku.includes(searchText)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+// Добавление товара в заказ
+function addToOrder(button) {
+    const productId = button.getAttribute('data-product-id');
+    const productName = button.getAttribute('data-product-name');
+    const productPrice = parseFloat(button.getAttribute('data-product-price'));
+    const productUnit = button.getAttribute('data-product-unit');
+    const maxQuantity = parseInt(button.getAttribute('data-max-quantity'));
+
+    // Проверяем, не добавлен ли уже товар
+    const existingProduct = selectedProducts.find(p => p.id === productId);
+    if (existingProduct) {
+        if (existingProduct.quantity < maxQuantity) {
+            existingProduct.quantity++;
+            showNotification(`Увеличено количество "${productName}"`, 'success');
+        } else {
+            showNotification(`Максимальное количество: ${maxQuantity} ${productUnit}`, 'warning');
+        }
+        updateSelectedProducts();
+        return;
+    }
+
+    // Добавляем новый товар
+    selectedProducts.push({
+        id: productId,
+        name: productName,
+        price: productPrice,
+        unit: productUnit,
+        quantity: 1,
+        maxQuantity: maxQuantity
+    });
+
+    showNotification(`Товар "${productName}" добавлен в заказ`, 'success');
+    updateSelectedProducts();
+}
+
+// Обновление списка выбранных товаров
+function updateSelectedProducts() {
+    const container = document.getElementById('selectedProducts');
+    const emptyMessage = document.getElementById('emptyCartMessage');
+    const selectedCount = document.getElementById('selectedCount');
+    const totalAmount = document.getElementById('totalAmount');
+    const submitBtn = document.getElementById('submitOrderBtn');
+
+    if (selectedProducts.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted py-3" id="emptyCartMessage"><i class="fas fa-cart-arrow-down fa-2x mb-2"></i><p>Добавьте товары из списка выше</p></div>';
+        selectedCount.textContent = '0';
+        totalAmount.textContent = '0.00 ₽';
+        submitBtn.disabled = true;
+        return;
+    }
+
+    let html = '';
+    let total = 0;
+
+    selectedProducts.forEach((product, index) => {
+        const productTotal = product.price * product.quantity;
+        total += productTotal;
+
+        html += `
+            <div class="border-bottom pb-3 mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">${product.name}</h6>
+                        <small class="text-muted">${product.price} ₽ / ${product.unit}</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeProduct(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="d-flex align-items-center">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="changeQuantity(${index}, -1)">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" class="form-control form-control-sm mx-2 text-center" 
+                           value="${product.quantity}" min="1" max="${product.maxQuantity}"
+                           onchange="setQuantity(${index}, this.value)" 
+                           name="quantity[]" style="width: 80px;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="changeQuantity(${index}, 1)">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="ms-3">
+                        <strong>${productTotal.toFixed(2)} ₽</strong>
+                    </div>
+                </div>
+                <input type="hidden" name="product_id[]" value="${product.id}">
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+    selectedCount.textContent = selectedProducts.length;
+    totalAmount.textContent = total.toFixed(2) + ' ₽';
+    submitBtn.disabled = false;
+}
+
+// Удаление товара
+function removeProduct(index) {
+    selectedProducts.splice(index, 1);
+    updateSelectedProducts();
+}
+
+// Изменение количества
+function changeQuantity(index, delta) {
+    const product = selectedProducts[index];
+    const newQuantity = product.quantity + delta;
+    
+    if (newQuantity >= 1 && newQuantity <= product.maxQuantity) {
+        product.quantity = newQuantity;
+        updateSelectedProducts();
+    }
+}
+
+function setQuantity(index, value) {
+    const product = selectedProducts[index];
+    const quantity = parseInt(value);
+    
+    if (quantity >= 1 && quantity <= product.maxQuantity) {
+        product.quantity = quantity;
+        updateSelectedProducts();
+    } else {
+        updateSelectedProducts();
+    }
+}
+
+// Очистка заказа
+function clearOrder() {
+    if (confirm('Вы уверены, что хотите очистить заказ?')) {
+        selectedProducts = [];
+        updateSelectedProducts();
+        document.getElementById('customerForm').reset();
+        showNotification('Заказ очищен', 'info');
+    }
+}
+
+// Отправка заказа
+function submitOrder() {
+    const customerForm = document.getElementById('customerForm');
+    const orderForm = document.getElementById('orderForm');
+    
+    if (!customerForm.checkValidity()) {
+        showNotification('Заполните обязательные поля информации о клиенте', 'warning');
+        customerForm.reportValidity();
+        return;
+    }
+
+    if (selectedProducts.length === 0) {
+        showNotification('Добавьте хотя бы один товар в заказ', 'warning');
+        return;
+    }
+
+    // Собираем данные
+    const customerData = new FormData(customerForm);
+    const orderData = new FormData(orderForm);
+    
+    const formData = new FormData();
+    for (let [key, value] of customerData) {
+        formData.append(key, value);
+    }
+    for (let [key, value] of orderData) {
+        formData.append(key, value);
+    }
+
+    // Отправляем форму
+    orderForm.submit();
+}
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', function() {
+    // Поиск товаров
+    document.getElementById('productSearch').addEventListener('input', filterProducts);
+    
+    // Обработчики для кнопок добавления
+    document.querySelectorAll('.add-to-order').forEach(button => {
+        button.addEventListener('click', function() {
+            addToOrder(this);
+        });
+    });
+
+    // Автозаполнение для внешних пользователей
+    {% if current_user.is_external() %}
+    const customerName = document.querySelector('input[name="customer_name"]');
+    const customerEmail = document.querySelector('input[name="customer_email"]');
+    
+    if (customerName && customerEmail) {
+        customerName.value = "{{ current_user.username }}";
+        customerEmail.value = "{{ current_user.email }}";
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}

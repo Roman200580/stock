@@ -1,0 +1,745 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="fas fa-boxes me-2"></i>Каталог товаров</h1>
+    <div>
+        {% if current_user.is_admin() or current_user.is_storekeeper() %}
+        <a href="{{ url_for('stock_report') }}" class="btn btn-outline-primary me-2">
+            <i class="fas fa-file-excel me-2"></i>Экспорт в Excel
+        </a>
+        {% endif %}
+        {% if current_user.is_admin() %}
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <i class="fas fa-plus-circle me-2"></i>Добавить товар
+        </button>
+        {% endif %}
+    </div>
+</div>
+<style>
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --light-color: #ecf0f1;
+    --dark-color: #2c3e50;
+    --border-radius: 12px;
+    --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+}
+
+/* Общие стили */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    line-height: 1.6;
+}
+
+/* Навигация */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.navbar-dark.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), #34495e) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Карточки */
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #fff, #f8f9fa);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+    padding: 1.25rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Кнопки */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.5rem 1.25rem;
+    transition: var(--transition);
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), #229954);
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning-color), #e67e22);
+    box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color), #c0392b);
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+/* Бейджи */
+.badge {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Таблицы */
+.table {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.table th {
+    background: linear-gradient(135deg, var(--primary-color), #34495e);
+    color: white;
+    border: none;
+    font-weight: 600;
+    padding: 1rem;
+}
+
+.table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+    transform: scale(1.01);
+    transition: var(--transition);
+}
+
+/* Формы */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Сайдбар */
+.sidebar {
+    min-height: calc(100vh - 76px);
+    background: linear-gradient(180deg, #2c3e50, #34495e);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link {
+    color: #bdc3c7 !important;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.nav-link:hover, .nav-link.active {
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+    color: white !important;
+    transform: translateX(5px);
+}
+
+/* Статистические карточки */
+.stats-card {
+    background: linear-gradient(135deg, #fff, #f8f9fa);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.stats-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card .card-body {
+    position: relative;
+    z-index: 1;
+}
+
+.stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+}
+
+/* Алерты */
+.alert {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    color: #721c24;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    color: #856404;
+}
+
+/* Модальные окна */
+.modal-content {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #fff, #f8f9fa);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+/* Иконки */
+.fas, .fab {
+    transition: var(--transition);
+}
+
+.btn:hover .fas, .btn:hover .fab {
+    transform: scale(1.1);
+}
+
+/* Кастомные классы */
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-color), #34495e);
+    color: white;
+    padding: 60px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="%23ffffff" opacity="0.1"><polygon points="0,0 1000,50 1000,100 0,100"/></svg>');
+    background-size: cover;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .card:hover {
+        transform: none;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .sidebar {
+        min-height: auto;
+    }
+}
+
+/* Утилиты */
+.text-gradient {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.border-gradient {
+    border: 2px solid;
+    border-image: linear-gradient(135deg, var(--secondary-color), var(--primary-color)) 1;
+}
+</style>
+<!-- Модальное окно добавления товара -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить товар</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_product') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Название товара *</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Описание</label>
+                                <textarea class="form-control" name="description" rows="3"></textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Категория</label>
+                                        <select class="form-select" name="category_id">
+                                            <option value="">Выберите категорию</option>
+                                            {% for category in categories %}
+                                            <option value="{{ category.id }}">{{ category.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Поставщик</label>
+                                        <select class="form-select" name="supplier_id">
+                                            <option value="">Выберите поставщика</option>
+                                            {% for supplier in suppliers %}
+                                            <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Единица измерения *</label>
+                                        <input type="text" class="form-control" name="unit" value="шт" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Место хранения</label>
+                                        <input type="text" class="form-control" name="location">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Изображение товара</label>
+                                <input type="file" class="form-control" name="image" accept="image/*">
+                                <div class="form-text">
+                                    Поддерживаемые форматы: JPG, PNG, GIF, WebP. Макс. размер: 16MB
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Цена продажи (₽)</label>
+                                        <input type="number" step="0.01" class="form-control" name="price" value="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Себестоимость (₽)</label>
+                                        <input type="number" step="0.01" class="form-control" name="cost_price" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Мин. запас</label>
+                                        <input type="number" class="form-control" name="min_stock" value="5">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Макс. запас</label>
+                                        <input type="number" class="form-control" name="max_stock" value="1000">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Текущий остаток</label>
+                                <input type="number" class="form-control" name="current_stock" value="0">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Штрих-код</label>
+                                <input type="text" class="form-control" name="barcode">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Добавить товар</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Поиск и фильтры -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-5">
+                <input type="text" class="form-control" name="search" placeholder="Поиск по названию, SKU..." 
+                       value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="category_id">
+                    <option value="">Все категории</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_id == category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check pt-2">
+                    <input class="form-check-input" type="checkbox" id="lowStock" name="low_stock" 
+                           {% if low_stock %}checked{% endif %}>
+                    <label class="form-check-label" for="lowStock">
+                        Низкий запас
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="fas fa-search me-2"></i>Найти
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Таблица товаров -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0">
+        <h5 class="card-title mb-0">
+            Список товаров
+            <span class="badge bg-secondary ms-2">{{ products|length }}</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if products %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Изображение</th>
+                        <th>Название</th>
+                        <th>SKU</th>
+                        <th>Категория</th>
+                        <th>Остаток</th>
+                        <th>Цена</th>
+                        <th>Статус</th>
+                        {% if current_user.is_admin() or current_user.is_storekeeper() %}
+                        <th>Действия</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>
+                            {% if product.image_filename %}
+                            <img src="{{ url_for('static', filename='uploads/products/' + product.image_filename) }}" 
+                                 class="rounded product-image" 
+                                 style="width: 50px; height: 50px; object-fit: cover;"
+                                 alt="{{ product.name }}"
+                                 onerror="this.src='{{ url_for('static', filename='images/product-placeholder.jpg') }}'">
+                            {% else %}
+                            <div class="product-image-placeholder rounded d-flex align-items-center justify-content-center"
+                                 style="width: 50px; height: 50px;">
+                                <i class="fas fa-box text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div>
+                                <strong>{{ product.name }}</strong>
+                                {% if product.description %}
+                                <br><small class="text-muted">{{ product.description[:50] }}{% if product.description|length > 50 %}...{% endif %}</small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td><code>{{ product.sku }}</code></td>
+                        <td>{{ product.category.name if product.category else '—' }}</td>
+                        <td>
+                            <span class="badge bg-{% if product.current_stock <= 3 %}danger{% elif product.current_stock <= product.min_stock %}warning{% else %}success{% endif %}">
+                                {{ product.current_stock }} {{ product.unit }}
+                            </span>
+                            {% if product.current_stock <= product.min_stock %}
+                            <br><small class="text-muted">Мин: {{ product.min_stock }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ "%.2f"|format(product.price) }} ₽</strong>
+                        </td>
+                        <td>
+                            {% if product.current_stock > 10 %}
+                            <span class="badge bg-success">В наличии</span>
+                            {% elif product.current_stock > 0 %}
+                            <span class="badge bg-warning">Мало</span>
+                            {% else %}
+                            <span class="badge bg-danger">Нет</span>
+                            {% endif %}
+                        </td>
+                        {% if current_user.is_admin() or current_user.is_storekeeper() %}
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                {% if current_user.is_storekeeper() %}
+                                <a href="{{ url_for('receive_goods') }}?product_id={{ product.id }}" 
+                                   class="btn btn-outline-success" title="Принять">
+                                    <i class="fas fa-arrow-down"></i>
+                                </a>
+                                <a href="{{ url_for('ship_goods') }}?product_id={{ product.id }}" 
+                                   class="btn btn-outline-danger" title="Отгрузить">
+                                    <i class="fas fa-arrow-up"></i>
+                                </a>
+                                {% endif %}
+                                {% if current_user.is_admin() %}
+                                <a href="{{ url_for('edit_product_form', product_id=product.id) }}" 
+                                   class="btn btn-outline-primary" title="Редактировать">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-secondary" 
+                                        onclick="showProductDetails({{ product.id }})" title="Просмотр">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Товары не найдены</h5>
+            <p class="text-muted">
+                {% if search or category_id or low_stock %}
+                Попробуйте изменить параметры поиска
+                {% else %}
+                В системе пока нет товаров
+                {% endif %}
+            </p>
+            {% if current_user.is_admin() %}
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="fas fa-plus me-2"></i>Добавить товар
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if low_stock %}
+<div class="alert alert-warning mt-4">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    Показаны только товары с низким запасом. 
+    <a href="{{ url_for('products') }}" class="alert-link">Показать все товары</a>
+</div>
+{% endif %}
+
+<!-- Модальное окно просмотра товара -->
+<div class="modal fade" id="productDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Информация о товаре</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="productDetailsContent">
+                <!-- Контент будет загружен через JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.product-image {
+    transition: transform 0.3s ease;
+}
+
+.product-image:hover {
+    transform: scale(1.1);
+}
+
+.product-image-placeholder {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 1px solid #dee2e6;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .product-image, .product-image-placeholder {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+    }
+}
+</style>
+
+<script>
+function showProductDetails(productId) {
+    // В реальной системе здесь будет AJAX запрос для получения данных о товаре
+    // Для демонстрации покажем заглушку
+    const content = `
+        <div class="text-center py-4">
+            <i class="fas fa-spinner fa-spin fa-2x text-primary mb-3"></i>
+            <p>Загрузка информации о товаре...</p>
+        </div>
+    `;
+    
+    document.getElementById('productDetailsContent').innerHTML = content;
+    
+    // Открываем модальное окно
+    const modal = new bootstrap.Modal(document.getElementById('productDetailsModal'));
+    modal.show();
+    
+    // Имитируем загрузку данных
+    setTimeout(() => {
+        const detailedContent = `
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    <div class="mb-3">
+                        <img src="/static/images/product-placeholder.jpg" 
+                             class="img-fluid rounded" 
+                             style="max-height: 200px;"
+                             alt="Изображение товара">
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <h4>Товар ID: ${productId}</h4>
+                    <p class="text-muted">Детальная информация о товаре будет загружена из базы данных.</p>
+                    
+                    <div class="row mt-3">
+                        <div class="col-6">
+                            <strong>SKU:</strong><br>
+                            <code>SKU${productId.toString().padStart(6, '0')}</code>
+                        </div>
+                        <div class="col-6">
+                            <strong>Остаток:</strong><br>
+                            <span class="badge bg-success">100 шт</span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-6">
+                            <strong>Цена:</strong><br>
+                            1,500.00 ₽
+                        </div>
+                        <div class="col-6">
+                            <strong>Статус:</strong><br>
+                            <span class="badge bg-success">В наличии</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <h6>Дополнительная информация</h6>
+                <p>Здесь может быть подробное описание товара, история операций, связанные заказы и другая информация.</p>
+            </div>
+            
+            <div class="mt-4 text-end">
+                <a href="/products/${productId}/edit" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Редактировать
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Закрыть
+                </button>
+            </div>
+        `;
+        document.getElementById('productDetailsContent').innerHTML = detailedContent;
+    }, 1000);
+}
+
+// Предпросмотр изображения при выборе файла
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.querySelector('input[name="image"]');
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Можно добавить предпросмотр изображения перед загрузкой
+                    console.log('Изображение выбрано:', file.name);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

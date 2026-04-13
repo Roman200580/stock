@@ -1,0 +1,732 @@
+{% extends "base.html" %}
+
+{% block title %}Каталог товаров - StockSync Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Навигация для гостей -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('public_catalog') }}">
+                <i class="fas fa-warehouse me-2"></i>StockSync Pro
+            </a>
+            
+            <div class="navbar-nav ms-auto align-items-center">
+                <a class="nav-link {{ 'active' if request.endpoint == 'public_catalog' }}" 
+                   href="{{ url_for('public_catalog') }}">
+                    <i class="fas fa-home me-1"></i>Каталог
+                </a>
+                <a class="nav-link position-relative" href="{{ url_for('guest_cart') }}">
+                    <i class="fas fa-shopping-cart me-1"></i>Корзина
+                    <span class="notification-badge" id="cartCount">0</span>
+                </a>
+                <a class="nav-link" href="{{ url_for('guest_order') }}">
+                    <i class="fas fa-clipboard-list me-1"></i>Оформить заказ
+                </a>
+                <a class="nav-link" href="{{ url_for('login') }}">
+                    <i class="fas fa-sign-in-alt me-1"></i>Вход для сотрудников
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Герой-секция -->
+    <section class="gradient-bg text-white py-5 mb-5 rounded-3" style="margin-top: 20px;">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold">Оптовые поставки товаров</h1>
+                    <p class="lead">Широкий ассортимент продукции от проверенных поставщиков. Быстрая доставка и выгодные цены.</p>
+                    <a href="#products" class="btn btn-light btn-lg">
+                        <i class="fas fa-shopping-bag me-2"></i>Смотреть каталог
+                    </a>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <i class="fas fa-boxes fa-10x text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Поиск и фильтры -->
+    <div class="container mb-4" id="products">
+        <div class="card border-0 shadow-sm fade-in-up">
+            <div class="card-body">
+                <h5 class="card-title gradient-text mb-4">
+                    <i class="fas fa-search me-2"></i>Поиск товаров
+                </h5>
+                <form method="GET" class="row g-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" name="search" 
+                                   placeholder="Поиск товаров по названию, SKU..." value="{{ search }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" name="category_id">
+                            <option value="">Все категории</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if category_id == category.id %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>Найти
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Товары -->
+    <div class="container">
+        {% if products %}
+        <div class="row">
+            {% for product in products %}
+            <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                <div class="card h-100 fade-in-up" style="animation-delay: {{ loop.index * 50 }}ms">
+                    <div class="card-header position-relative">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h6 class="card-title mb-0 fw-bold">{{ product.name }}</h6>
+                            <span class="badge bg-{% if product.current_stock > 10 %}success{% elif product.current_stock > 0 %}warning{% else %}danger{% endif %}">
+                                {% if product.current_stock > 10 %}
+                                В наличии
+                                {% elif product.current_stock > 0 %}
+                                Мало
+                                {% else %}
+                                Нет
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <div class="rounded-circle p-4 mb-3" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(219, 39, 119, 0.1));">
+                                <i class="fas fa-box fa-2x" style="color: var(--primary);"></i>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <span class="h3 fw-bold text-primary">{{ "%.2f"|format(product.price) }} ₽</span>
+                                <div class="text-muted small">за {{ product.unit }}</div>
+                            </div>
+
+                            {% if product.description %}
+                            <p class="small text-secondary mb-3">
+                                {{ product.description[:80] }}{% if product.description|length > 80 %}...{% endif %}
+                            </p>
+                            {% endif %}
+
+                            <div class="small text-muted mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>SKU:</span>
+                                    <code class="bg-secondary bg-opacity-10 px-1 rounded">{{ product.sku }}</code>
+                                </div>
+                                {% if product.category %}
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Категория:</span>
+                                    <span class="fw-semibold">{{ product.category.name }}</span>
+                                </div>
+                                {% endif %}
+                                <div class="d-flex justify-content-between">
+                                    <span>В наличии:</span>
+                                    <span class="fw-semibold">{{ product.current_stock }} {{ product.unit }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        {% if product.current_stock > 0 %}
+                        <button class="btn btn-primary w-100 add-to-cart" 
+                                data-product-id="{{ product.id }}"
+                                data-product-name="{{ product.name }}"
+                                data-product-price="{{ product.price }}"
+                                data-product-unit="{{ product.unit }}"
+                                data-max-quantity="{{ product.current_stock }}">
+                            <i class="fas fa-cart-plus me-2"></i>В корзину
+                        </button>
+                        {% else %}
+                        <button class="btn btn-outline-secondary w-100" disabled>
+                            <i class="fas fa-times me-2"></i>Нет в наличии
+                        </button>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('public_product_detail', product_id=product.id) }}" 
+                           class="btn btn-outline-info w-100 mt-2">
+                            <i class="fas fa-info-circle me-1"></i>Подробнее
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% else %}
+        <div class="card border-0 shadow-sm text-center py-5 fade-in-up">
+            <div class="card-body">
+                <i class="fas fa-box-open fa-3x text-muted mb-3 opacity-50"></i>
+                <h4 class="text-muted mb-3">Товары не найдены</h4>
+                <p class="text-muted mb-4">Попробуйте изменить параметры поиска</p>
+                <a href="{{ url_for('public_catalog') }}" class="btn btn-primary">
+                    <i class="fas fa-redo me-2"></i>Показать все товары
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Футер для гостей -->
+    <footer class="bg-card mt-5 py-4 border-top" style="border-color: var(--border-light) !important;">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <h5 class="gradient-text mb-3">
+                        <i class="fas fa-warehouse me-2"></i>StockSync Pro
+                    </h5>
+                    <p class="text-secondary">Профессиональное решение для управления складом и продажами</p>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h6 class="fw-bold mb-3">Контакты</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2 text-primary"></i>
+                            <span class="text-secondary">+7 (999) 123-45-67</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-envelope me-2 text-primary"></i>
+                            <span class="text-secondary">info@stocksync-pro.com</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h6 class="fw-bold mb-3">Быстрые ссылки</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="{{ url_for('public_catalog') }}" class="text-decoration-none text-secondary hover-primary">
+                                <i class="fas fa-chevron-right me-2 text-primary"></i>Каталог товаров
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('guest_order') }}" class="text-decoration-none text-secondary hover-primary">
+                                <i class="fas fa-chevron-right me-2 text-primary"></i>Оформить заказ
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('login') }}" class="text-decoration-none text-secondary hover-primary">
+                                <i class="fas fa-chevron-right me-2 text-primary"></i>Вход для сотрудников
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="text-center pt-3 border-top" style="border-color: var(--border-light) !important;">
+                <p class="mb-0 text-muted small">
+                    &copy; {{ current_year }} StockSync Pro. Все права защищены.
+                </p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<!-- Модальное окно корзины -->
+<div class="modal fade" id="cartModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title gradient-text">
+                    <i class="fas fa-shopping-cart me-2"></i>Корзина
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="cartItems">
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-shopping-cart fa-3x mb-3 opacity-50"></i>
+                        <p class="mb-0">Корзина пуста</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-arrow-left me-2"></i>Продолжить покупки
+                </button>
+                <a href="{{ url_for('guest_cart') }}" class="btn btn-outline-info">
+                    <i class="fas fa-shopping-cart me-2"></i>Перейти в корзину
+                </a>
+                <a href="{{ url_for('guest_order') }}" class="btn btn-primary">
+                    <i class="fas fa-clipboard-check me-2"></i>Оформить заказ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Функции для публичного каталога
+class PublicCatalog {
+    constructor() {
+        this.cart = JSON.parse(localStorage.getItem('guest_cart')) || [];
+        this.init();
+    }
+    
+    init() {
+        this.updateCartDisplay();
+        this.initEventListeners();
+        this.initQuickAddButtons();
+        this.initSearch();
+        this.initHotkeys();
+    }
+    
+    updateCart() {
+        localStorage.setItem('guest_cart', JSON.stringify(this.cart));
+        this.updateCartDisplay();
+        this.updateCartModal();
+    }
+    
+    updateCartDisplay() {
+        const cartCount = document.getElementById('cartCount');
+        if (cartCount) {
+            const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCount.textContent = totalItems;
+            
+            if (totalItems > 0) {
+                cartCount.classList.add('pulse');
+            } else {
+                cartCount.classList.remove('pulse');
+            }
+        }
+    }
+    
+    updateCartModal() {
+        const cartItems = document.getElementById('cartItems');
+        if (!cartItems) return;
+        
+        if (this.cart.length === 0) {
+            cartItems.innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-shopping-cart fa-3x mb-3 opacity-50"></i>
+                    <p class="mb-0">Корзина пуста</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '<div class="table-container mb-3">';
+        html += '<table class="table table-hover mb-0">';
+        html += '<thead>';
+        html += '<tr>';
+        html += '<th>Товар</th>';
+        html += '<th class="text-center">Кол-во</th>';
+        html += '<th class="text-end">Сумма</th>';
+        html += '<th class="text-center">Действия</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+        
+        let total = 0;
+        
+        this.cart.forEach((item, index) => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+            
+            html += '<tr>';
+            html += `<td>${item.name}</td>`;
+            html += `<td class="text-center">
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary decrease-quantity" 
+                                    data-index="${index}" ${item.quantity <= 1 ? 'disabled' : ''}>
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span class="btn border">${item.quantity} ${item.unit}</span>
+                            <button class="btn btn-outline-secondary increase-quantity" 
+                                    data-index="${index}" ${item.quantity >= item.maxQuantity ? 'disabled' : ''}>
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                     </td>`;
+            html += `<td class="text-end fw-bold">${itemTotal.toFixed(2)} ₽</td>`;
+            html += `<td class="text-center">
+                        <button class="btn btn-sm btn-outline-danger remove-item" data-index="${index}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                     </td>`;
+            html += '</tr>';
+        });
+        
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+        
+        html += `<div class="d-flex justify-content-between align-items-center p-3 border-top">
+                    <h5 class="mb-0">Итого:</h5>
+                    <h4 class="mb-0 text-primary">${total.toFixed(2)} ₽</h4>
+                 </div>`;
+        
+        cartItems.innerHTML = html;
+        
+        // Добавляем обработчики событий для кнопок в модальном окне
+        this.initCartModalEvents();
+    }
+    
+    initEventListeners() {
+        // Обработчики добавления в корзину
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.add-to-cart')) {
+                this.addToCart(e.target.closest('.add-to-cart'));
+            }
+        });
+        
+        // Открытие модального окна корзины
+        const cartLinks = document.querySelectorAll('a[href*="guest_cart"], button[data-bs-target="#cartModal"]');
+        cartLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (link.href && link.href.includes('guest_cart')) {
+                    // Позволяем переходу продолжиться
+                    return;
+                }
+                
+                e.preventDefault();
+                this.showCartModal();
+            });
+        });
+        
+        // Быстрое добавление с клавиатуры
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.querySelector('#cartModal.show')) {
+                this.hideCartModal();
+            }
+        });
+    }
+    
+    initQuickAddButtons() {
+        // Добавляем быстрые кнопки увеличения/уменьшения на карточках товаров
+        document.querySelectorAll('.card').forEach(card => {
+            const addButton = card.querySelector('.add-to-cart');
+            if (addButton && !addButton.disabled) {
+                // Создаем мини-панель управления количеством
+                const quickControl = document.createElement('div');
+                quickControl.className = 'quick-control d-none mt-2';
+                quickControl.innerHTML = `
+                    <div class="input-group input-group-sm">
+                        <button class="btn btn-outline-secondary quick-decrease" type="button">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" class="form-control text-center" value="1" min="1" max="100">
+                        <button class="btn btn-outline-secondary quick-increase" type="button">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="btn btn-primary add-with-quantity" type="button">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </div>
+                `;
+                
+                const cardFooter = card.querySelector('.card-footer');
+                if (cardFooter) {
+                    cardFooter.prepend(quickControl);
+                    
+                    // Показываем панель при нажатии на кнопку "В корзину"
+                    addButton.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        addButton.classList.add('d-none');
+                        quickControl.classList.remove('d-none');
+                    });
+                    
+                    // Обработчики для панели
+                    const input = quickControl.querySelector('input');
+                    const productId = addButton.getAttribute('data-product-id');
+                    const productName = addButton.getAttribute('data-product-name');
+                    const productPrice = parseFloat(addButton.getAttribute('data-product-price'));
+                    const productUnit = addButton.getAttribute('data-product-unit');
+                    const maxQuantity = parseInt(addButton.getAttribute('data-max-quantity'));
+                    
+                    quickControl.querySelector('.quick-decrease').addEventListener('click', () => {
+                        let value = parseInt(input.value) || 1;
+                        if (value > 1) {
+                            input.value = value - 1;
+                        }
+                    });
+                    
+                    quickControl.querySelector('.quick-increase').addEventListener('click', () => {
+                        let value = parseInt(input.value) || 1;
+                        if (value < maxQuantity) {
+                            input.value = value + 1;
+                        } else {
+                            this.showNotification(`Максимальное количество: ${maxQuantity} ${productUnit}`, 'warning');
+                        }
+                    });
+                    
+                    quickControl.querySelector('.add-with-quantity').addEventListener('click', () => {
+                        const quantity = parseInt(input.value) || 1;
+                        this.addToCartWithQuantity(productId, productName, productPrice, productUnit, maxQuantity, quantity);
+                        
+                        // Возвращаем обычную кнопку
+                        quickControl.classList.add('d-none');
+                        addButton.classList.remove('d-none');
+                    });
+                    
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            quickControl.querySelector('.add-with-quantity').click();
+                        }
+                    });
+                    
+                    // Запрещаем ввод больше максимального количества
+                    input.addEventListener('change', () => {
+                        let value = parseInt(input.value) || 1;
+                        if (value > maxQuantity) {
+                            input.value = maxQuantity;
+                            this.showNotification(`Максимальное количество: ${maxQuantity} ${productUnit}`, 'warning');
+                        }
+                        if (value < 1) {
+                            input.value = 1;
+                        }
+                    });
+                }
+            }
+        });
+    }
+    
+    initSearch() {
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            // Сохранение поискового запроса в localStorage
+            searchInput.addEventListener('change', () => {
+                localStorage.setItem('last_search', searchInput.value);
+            });
+            
+            // Восстановление последнего поиска
+            const lastSearch = localStorage.getItem('last_search');
+            if (lastSearch && !searchInput.value) {
+                searchInput.value = lastSearch;
+            }
+        }
+    }
+    
+    initHotkeys() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+K или Cmd+K - фокус на поиск
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.querySelector('input[name="search"]')?.focus();
+            }
+            
+            // Ctrl+C или Cmd+C - открыть корзину
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                e.preventDefault();
+                this.showCartModal();
+            }
+        });
+    }
+    
+    initCartModalEvents() {
+        // Увеличение количества
+        document.querySelectorAll('.increase-quantity').forEach(button => {
+            button.addEventListener('click', () => {
+                const index = parseInt(button.getAttribute('data-index'));
+                if (this.cart[index].quantity < this.cart[index].maxQuantity) {
+                    this.cart[index].quantity++;
+                    this.updateCart();
+                } else {
+                    this.showNotification(`Максимальное количество: ${this.cart[index].maxQuantity} ${this.cart[index].unit}`, 'warning');
+                }
+            });
+        });
+        
+        // Уменьшение количества
+        document.querySelectorAll('.decrease-quantity').forEach(button => {
+            button.addEventListener('click', () => {
+                const index = parseInt(button.getAttribute('data-index'));
+                if (this.cart[index].quantity > 1) {
+                    this.cart[index].quantity--;
+                    this.updateCart();
+                }
+            });
+        });
+        
+        // Удаление товара
+        document.querySelectorAll('.remove-item').forEach(button => {
+            button.addEventListener('click', () => {
+                const index = parseInt(button.getAttribute('data-index'));
+                const productName = this.cart[index].name;
+                this.cart.splice(index, 1);
+                this.updateCart();
+                this.showNotification(`Товар "${productName}" удален из корзины`, 'info');
+            });
+        });
+    }
+    
+    addToCart(button) {
+        const productId = button.getAttribute('data-product-id');
+        const productName = button.getAttribute('data-product-name');
+        const productPrice = parseFloat(button.getAttribute('data-product-price'));
+        const productUnit = button.getAttribute('data-product-unit');
+        const maxQuantity = parseInt(button.getAttribute('data-max-quantity'));
+        
+        this.addToCartWithQuantity(productId, productName, productPrice, productUnit, maxQuantity, 1);
+    }
+    
+    addToCartWithQuantity(productId, productName, productPrice, productUnit, maxQuantity, quantity) {
+        // Проверяем, есть ли уже товар в корзине
+        const existingItem = this.cart.find(item => item.id == productId);
+        
+        if (existingItem) {
+            const newQuantity = existingItem.quantity + quantity;
+            if (newQuantity <= maxQuantity) {
+                existingItem.quantity = newQuantity;
+            } else {
+                this.showNotification(`Максимальное количество: ${maxQuantity} ${productUnit}. Уже в корзине: ${existingItem.quantity}`, 'warning');
+                return;
+            }
+        } else {
+            this.cart.push({
+                id: productId,
+                name: productName,
+                price: productPrice,
+                unit: productUnit,
+                quantity: quantity,
+                maxQuantity: maxQuantity
+            });
+        }
+        
+        this.updateCart();
+        this.showNotification(`${productName} добавлен в корзину (${quantity} ${productUnit})`, 'success');
+        
+        // Анимация кнопки
+        const button = document.querySelector(`.add-to-cart[data-product-id="${productId}"]`);
+        if (button) {
+            button.classList.add('btn-success');
+            setTimeout(() => {
+                button.classList.remove('btn-success');
+            }, 1000);
+        }
+    }
+    
+    showCartModal() {
+        const modal = new bootstrap.Modal(document.getElementById('cartModal'));
+        this.updateCartModal();
+        modal.show();
+    }
+    
+    hideCartModal() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('cartModal'));
+        if (modal) {
+            modal.hide();
+        }
+    }
+    
+    showNotification(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center border-0 fade-in-up';
+        toast.style.cssText = `
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-left: 4px solid ${type === 'success' ? 'var(--success)' : 
+                                 type === 'error' ? 'var(--danger)' : 
+                                 type === 'warning' ? 'var(--warning)' : 'var(--info)'};
+            color: var(--text-primary);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 1rem;
+            max-width: 350px;
+        `;
+        
+        toast.innerHTML = `
+            <div class="toast-body d-flex align-items-center p-3">
+                <div class="rounded-circle p-2 me-3" 
+                     style="background: ${type === 'success' ? 'linear-gradient(135deg, var(--success), rgba(16, 185, 129, 0.2))' : 
+                                 type === 'error' ? 'linear-gradient(135deg, var(--danger), rgba(239, 68, 68, 0.2))' : 
+                                 type === 'warning' ? 'linear-gradient(135deg, var(--warning), rgba(245, 158, 11, 0.2))' : 
+                                 'linear-gradient(135deg, var(--info), rgba(14, 165, 233, 0.2))'}">
+                    <i class="fas ${type === 'success' ? 'fa-check' : 
+                                 type === 'error' ? 'fa-exclamation' : 
+                                 type === 'warning' ? 'fa-triangle-exclamation' : 'fa-info'} text-white"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold" style="font-size: 0.9rem;">${message}</div>
+                </div>
+            </div>
+        `;
+        
+        const container = document.querySelector('.toast-container') || this.createToastContainer();
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+    
+    createToastContainer() {
+        const container = document.createElement('div');
+        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        container.style.zIndex = '1060';
+        document.body.appendChild(container);
+        return container;
+    }
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    window.publicCatalog = new PublicCatalog();
+    
+    // Автопрокрутка к якорю
+    if (window.location.hash === '#products') {
+        const element = document.getElementById('products');
+        if (element) {
+            setTimeout(() => {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+    }
+});
+</script>
+
+<style>
+.hover-primary:hover {
+    color: var(--primary) !important;
+}
+
+.quick-control {
+    transition: all var(--transition-fast);
+}
+
+.card:hover {
+    transform: translateY(-8px);
+}
+
+/* Анимация для счетчика корзины */
+@keyframes bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+#cartCount.pulse {
+    animation: bounce 0.5s ease;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .gradient-bg .display-4 {
+        font-size: 2rem;
+    }
+    
+    .gradient-bg .lead {
+        font-size: 1rem;
+    }
+    
+    .card-footer .btn {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %}

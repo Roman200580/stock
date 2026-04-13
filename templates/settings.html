@@ -1,0 +1,1791 @@
+{% extends "base.html" %}
+
+{% block title %}Настройки - StockSync Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 gradient-text">
+            <i class="fas fa-cog me-2"></i>Настройки
+        </h1>
+        <button class="btn btn-outline-primary" onclick="saveAllSettings()">
+            <i class="fas fa-save me-2"></i>Сохранить все изменения
+        </button>
+    </div>
+
+    <div class="row">
+        <!-- Левая колонка - навигация по настройкам -->
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm fade-in-up">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Разделы настроек</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#profile" class="list-group-item list-group-item-action border-0 py-3 active" 
+                       onclick="showSettingsSection('profile')">
+                        <i class="fas fa-user me-3 text-primary"></i>
+                        <span>Профиль пользователя</span>
+                    </a>
+                    <a href="#security" class="list-group-item list-group-item-action border-0 py-3"
+                       onclick="showSettingsSection('security')">
+                        <i class="fas fa-shield-alt me-3 text-warning"></i>
+                        <span>Безопасность</span>
+                    </a>
+                    <a href="#notifications" class="list-group-item list-group-item-action border-0 py-3"
+                       onclick="showSettingsSection('notifications')">
+                        <i class="fas fa-bell me-3 text-info"></i>
+                        <span>Уведомления</span>
+                    </a>
+                    <a href="#appearance" class="list-group-item list-group-item-action border-0 py-3"
+                       onclick="showSettingsSection('appearance')">
+                        <i class="fas fa-palette me-3 text-success"></i>
+                        <span>Внешний вид</span>
+                    </a>
+                    <a href="#system" class="list-group-item list-group-item-action border-0 py-3"
+                       onclick="showSettingsSection('system')">
+                        <i class="fas fa-server me-3 text-secondary"></i>
+                        <span>Системные настройки</span>
+                    </a>
+                    <a href="#api" class="list-group-item list-group-item-action border-0 py-3"
+                       onclick="showSettingsSection('api')">
+                        <i class="fas fa-code me-3 text-danger"></i>
+                        <span>API и интеграции</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Статистика сохранений -->
+            <div class="card border-0 shadow-sm mt-4 fade-in-up" style="animation-delay: 100ms">
+                <div class="card-body">
+                    <h6 class="mb-3"><i class="fas fa-chart-bar me-2"></i>Статистика</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Последнее сохранение:</small>
+                        <small id="lastSaveTime" class="fw-semibold">Не сохранено</small>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Изменений сегодня:</small>
+                        <small id="todayChanges" class="fw-semibold text-primary">0</small>
+                    </div>
+                    <div class="progress mb-3" style="height: 4px;">
+                        <div class="progress-bar" id="settingsProgress" style="width: 0%"></div>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary w-100" onclick="loadDefaultSettings()">
+                        <i class="fas fa-undo me-1"></i>Сбросить к заводским
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Правая колонка - содержимое настроек -->
+        <div class="col-lg-9">
+            <!-- Профиль пользователя -->
+            <div id="profileSection" class="settings-section active">
+                <div class="card border-0 shadow-sm mb-4 fade-in-up">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-user me-2"></i>Профиль пользователя</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="profileForm">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Имя пользователя</label>
+                                        <input type="text" class="form-control" 
+                                               value="{{ current_user.username }}" readonly>
+                                        <small class="text-muted">Имя пользователя нельзя изменить</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Email адрес</label>
+                                        <input type="email" class="form-control" name="email" 
+                                               value="{{ current_user.email }}" required>
+                                        <small class="text-muted">Основной email для уведомлений</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Полное имя</label>
+                                        <input type="text" class="form-control" name="full_name" 
+                                               placeholder="Введите полное имя">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Телефон</label>
+                                        <input type="tel" class="form-control" name="phone" 
+                                               placeholder="+7 (999) 123-45-67">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">О себе</label>
+                                        <textarea class="form-control" name="bio" rows="3" 
+                                                  placeholder="Краткая информация о себе..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-outline-secondary" 
+                                                onclick="resetForm('profileForm')">
+                                            <i class="fas fa-times me-2"></i>Отмена
+                                        </button>
+                                        <button type="button" class="btn btn-primary" 
+                                                onclick="saveSection('profile')">
+                                            <i class="fas fa-save me-2"></i>Сохранить профиль
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Аватар пользователя -->
+                <div class="card border-0 shadow-sm fade-in-up" style="animation-delay: 100ms">
+                    <div class="card-body">
+                        <h5 class="mb-4"><i class="fas fa-image me-2"></i>Фотография профиля</h5>
+                        <div class="d-flex align-items-center">
+                            <div class="position-relative me-4">
+                                <div class="user-avatar-lg">
+                                    {{ current_user.username[:1]|upper }}
+                                </div>
+                                <button class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle p-1"
+                                        onclick="document.getElementById('avatarUpload').click()">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                                <input type="file" id="avatarUpload" class="d-none" 
+                                       accept="image/*" onchange="handleAvatarUpload(event)">
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-2">Загрузить новое фото</h6>
+                                <p class="small text-muted mb-3">
+                                    Рекомендуется квадратное изображение размером до 2MB
+                                </p>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="removeAvatar()">
+                                        <i class="fas fa-trash me-1"></i>Удалить
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="generateAvatar()">
+                                        <i class="fas fa-magic me-1"></i>Сгенерировать
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Безопасность -->
+            <div id="securitySection" class="settings-section d-none">
+                <div class="card border-0 shadow-sm mb-4 fade-in-up">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Настройки безопасности</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Смена пароля -->
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="fas fa-key me-2"></i>Смена пароля</h6>
+                            <form id="passwordForm">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Текущий пароль</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" 
+                                                   id="currentPassword" required>
+                                            <button class="btn btn-outline-secondary" type="button" 
+                                                    onclick="togglePasswordVisibility('currentPassword')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Новый пароль</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" 
+                                                   id="newPassword" required>
+                                            <button class="btn btn-outline-secondary" type="button" 
+                                                    onclick="togglePasswordVisibility('newPassword')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Повторите пароль</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" 
+                                                   id="confirmPassword" required>
+                                            <button class="btn btn-outline-secondary" type="button" 
+                                                    onclick="togglePasswordVisibility('confirmPassword')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="progress mb-2" style="height: 4px;">
+                                        <div class="progress-bar" id="passwordStrength" style="width: 0%"></div>
+                                    </div>
+                                    <small id="passwordHelp" class="text-muted">
+                                        Пароль должен содержать минимум 8 символов, включая цифры и буквы
+                                    </small>
+                                </div>
+                                <div class="mt-3">
+                                    <button type="button" class="btn btn-primary" onclick="changePassword()">
+                                        <i class="fas fa-key me-2"></i>Изменить пароль
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary ms-2" 
+                                            onclick="generateStrongPassword()">
+                                        <i class="fas fa-random me-2"></i>Сгенерировать пароль
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Двухфакторная аутентификация -->
+                        <div class="border-top pt-4">
+                            <h6 class="mb-3"><i class="fas fa-mobile-alt me-2"></i>Двухфакторная аутентификация</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-semibold">Двухфакторная аутентификация</div>
+                                    <small class="text-muted">Добавьте дополнительный уровень безопасности</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" 
+                                           id="twoFactorToggle" onchange="toggleTwoFactorAuth()">
+                                    <label class="form-check-label" for="twoFactorToggle"></label>
+                                </div>
+                            </div>
+                            <div id="twoFactorSetup" class="mt-3 d-none">
+                                <div class="alert alert-info border-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Отсканируйте QR-код в приложении Google Authenticator
+                                </div>
+                                <div class="text-center">
+                                    <div id="qrcode" class="mb-3"></div>
+                                    <code id="secretKey" class="bg-light p-2 rounded d-block"></code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Активные сессии -->
+                        <div class="border-top pt-4 mt-4">
+                            <h6 class="mb-3"><i class="fas fa-laptop me-2"></i>Активные сессии</h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Устройство</th>
+                                            <th>Местоположение</th>
+                                            <th>Последняя активность</th>
+                                            <th>Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sessionsTable">
+                                        <!-- Сессии будут загружены через JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button class="btn btn-outline-danger w-100" onclick="terminateAllSessions()">
+                                <i class="fas fa-sign-out-alt me-2"></i>Завершить все сессии
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Уведомления -->
+            <div id="notificationsSection" class="settings-section d-none">
+                <div class="card border-0 shadow-sm fade-in-up">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Настройки уведомлений</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="mb-3"><i class="fas fa-envelope me-2"></i>Email уведомления</h6>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="emailOrders" checked>
+                                    <label class="form-check-label" for="emailOrders">
+                                        Новые заказы
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="emailLowStock" checked>
+                                    <label class="form-check-label" for="emailLowStock">
+                                        Низкий запас товаров
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="emailUpdates">
+                                    <label class="form-check-label" for="emailUpdates">
+                                        Обновления системы
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="mb-3"><i class="fas fa-comment-alt me-2"></i>Внутренние уведомления</h6>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="notifyTasks" checked>
+                                    <label class="form-check-label" for="notifyTasks">
+                                        Назначенные задачи
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="notifyComments" checked>
+                                    <label class="form-check-label" for="notifyComments">
+                                        Комментарии и упоминания
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="notifySystem">
+                                    <label class="form-check-label" for="notifySystem">
+                                        Системные события
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border-top pt-4 mt-3">
+                            <h6 class="mb-3"><i class="fas fa-volume-up me-2"></i>Звуковые уведомления</h6>
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="soundEnabled" checked>
+                                        <label class="form-check-label" for="soundEnabled">
+                                            Включить звуковые уведомления
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Громкость уведомлений</label>
+                                        <input type="range" class="form-range" id="notificationVolume" 
+                                               min="0" max="100" value="50">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button class="btn btn-primary" onclick="saveNotificationSettings()">
+                                <i class="fas fa-save me-2"></i>Сохранить настройки уведомлений
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Внешний вид -->
+            <div id="appearanceSection" class="settings-section d-none">
+                <div class="card border-0 shadow-sm fade-in-up">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-palette me-2"></i>Настройки внешнего вида</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Тема -->
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="fas fa-moon me-2"></i>Цветовая тема</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="theme-option text-center" onclick="selectTheme('light')">
+                                        <div class="theme-preview light mb-2">
+                                            <div class="theme-header"></div>
+                                            <div class="theme-content"></div>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="theme" 
+                                                   id="themeLight" value="light" checked>
+                                            <label class="form-check-label" for="themeLight">
+                                                Светлая
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="theme-option text-center" onclick="selectTheme('dark')">
+                                        <div class="theme-preview dark mb-2">
+                                            <div class="theme-header"></div>
+                                            <div class="theme-content"></div>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="theme" 
+                                                   id="themeDark" value="dark">
+                                            <label class="form-check-label" for="themeDark">
+                                                Темная
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="theme-option text-center" onclick="selectTheme('auto')">
+                                        <div class="theme-preview auto mb-2">
+                                            <div class="theme-header"></div>
+                                            <div class="theme-content"></div>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="theme" 
+                                                   id="themeAuto" value="auto">
+                                            <label class="form-check-label" for="themeAuto">
+                                                Автоматически
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Основной цвет -->
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="fas fa-fill-drip me-2"></i>Основной цвет</h6>
+                            <div class="color-palette mb-3">
+                                <div class="color-option" style="background-color: #7c3aed;" 
+                                     onclick="selectColor('#7c3aed')" data-color="purple"></div>
+                                <div class="color-option" style="background-color: #3b82f6;" 
+                                     onclick="selectColor('#3b82f6')" data-color="blue"></div>
+                                <div class="color-option" style="background-color: #10b981;" 
+                                     onclick="selectColor('#10b981')" data-color="green"></div>
+                                <div class="color-option" style="background-color: #f59e0b;" 
+                                     onclick="selectColor('#f59e0b')" data-color="orange"></div>
+                                <div class="color-option" style="background-color: #ef4444;" 
+                                     onclick="selectColor('#ef4444')" data-color="red"></div>
+                                <div class="color-option" style="background-color: #8b5cf6;" 
+                                     onclick="selectColor('#8b5cf6')" data-color="violet"></div>
+                            </div>
+                            <div class="input-group" style="max-width: 300px;">
+                                <input type="color" class="form-control form-control-color" 
+                                       id="customColor" value="#7c3aed" onchange="selectCustomColor(this.value)">
+                                <button class="btn btn-outline-secondary" type="button" 
+                                        onclick="resetColor()">Сбросить</button>
+                            </div>
+                        </div>
+
+                        <!-- Плотность интерфейса -->
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="fas fa-layer-group me-2"></i>Плотность интерфейса</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="density-option text-center" onclick="setDensity('compact')">
+                                        <div class="density-preview compact mb-2"></div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="density" 
+                                                   id="densityCompact" value="compact">
+                                            <label class="form-check-label" for="densityCompact">
+                                                Компактный
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="density-option text-center" onclick="setDensity('normal')">
+                                        <div class="density-preview normal mb-2"></div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="density" 
+                                                   id="densityNormal" value="normal" checked>
+                                            <label class="form-check-label" for="densityNormal">
+                                                Нормальный
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="density-option text-center" onclick="setDensity('comfortable')">
+                                        <div class="density-preview comfortable mb-2"></div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="density" 
+                                                   id="densityComfortable" value="comfortable">
+                                            <label class="form-check-label" for="densityComfortable">
+                                                Комфортный
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Шрифт -->
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="fas fa-font me-2"></i>Настройки шрифта</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Размер шрифта</label>
+                                    <input type="range" class="form-range" id="fontSize" 
+                                           min="12" max="18" value="14" onchange="updateFontSize(this.value)">
+                                    <div class="d-flex justify-content-between">
+                                        <small>Мелкий</small>
+                                        <small>Средний</small>
+                                        <small>Крупный</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Стиль шрифта</label>
+                                    <select class="form-select" id="fontFamily" onchange="updateFontFamily(this.value)">
+                                        <option value="system" selected>Системный шрифт</option>
+                                        <option value="roboto">Roboto</option>
+                                        <option value="open-sans">Open Sans</option>
+                                        <option value="inter">Inter</option>
+                                        <option value="montserrat">Montserrat</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Предпросмотр -->
+                        <div class="border rounded p-3 mb-4">
+                            <h6 class="mb-3"><i class="fas fa-eye me-2"></i>Предпросмотр</h6>
+                            <div class="preview-card">
+                                <div class="preview-header">Заголовок карточки</div>
+                                <div class="preview-body">
+                                    Это предварительный просмотр текущих настроек внешнего вида
+                                </div>
+                                <div class="preview-footer">
+                                    <button class="btn btn-sm btn-primary">Кнопка</button>
+                                    <button class="btn btn-sm btn-outline-secondary">Кнопка</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button class="btn btn-primary" onclick="saveAppearanceSettings()">
+                                <i class="fas fa-save me-2"></i>Применить настройки
+                            </button>
+                            <button class="btn btn-outline-secondary ms-2" onclick="resetAppearance()">
+                                <i class="fas fa-undo me-2"></i>Сбросить к стандартным
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Системные настройки -->
+            <div id="systemSection" class="settings-section d-none">
+                <div class="card border-0 shadow-sm mb-4 fade-in-up">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-server me-2"></i>Системные настройки</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Общие настройки -->
+                        <h6 class="mb-3"><i class="fas fa-sliders-h me-2"></i>Общие настройки</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Язык интерфейса</label>
+                                <select class="form-select" id="language">
+                                    <option value="ru" selected>Русский</option>
+                                    <option value="en">English</option>
+                                    <option value="es">Español</option>
+                                    <option value="de">Deutsch</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Часовой пояс</label>
+                                <select class="form-select" id="timezone">
+                                    <option value="Europe/Moscow" selected>Москва (GMT+3)</option>
+                                    <option value="Europe/London">Лондон (GMT+1)</option>
+                                    <option value="America/New_York">Нью-Йорк (GMT-5)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Формат даты</label>
+                                <select class="form-select" id="dateFormat">
+                                    <option value="DD.MM.YYYY" selected>31.12.2023</option>
+                                    <option value="YYYY-MM-DD">2023-12-31</option>
+                                    <option value="MM/DD/YYYY">12/31/2023</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Формат времени</label>
+                                <select class="form-select" id="timeFormat">
+                                    <option value="24" selected>24-часовой (14:30)</option>
+                                    <option value="12">12-часовой (2:30 PM)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Настройки рабочего пространства -->
+                        <h6 class="mb-3 border-top pt-3"><i class="fas fa-briefcase me-2"></i>Рабочее пространство</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
+                                    <label class="form-check-label" for="autoRefresh">
+                                        Автообновление данных
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="confirmActions" checked>
+                                    <label class="form-check-label" for="confirmActions">
+                                        Подтверждение действий
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="showTips" checked>
+                                    <label class="form-check-label" for="showTips">
+                                        Показывать подсказки
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="keyboardShortcuts">
+                                    <label class="form-check-label" for="keyboardShortcuts">
+                                        Горячие клавиши
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Настройки данных -->
+                        <h6 class="mb-3 border-top pt-3"><i class="fas fa-database me-2"></i>Настройки данных</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Экспорт данных</label>
+                                <div class="btn-group w-100">
+                                    <button class="btn btn-outline-primary" onclick="exportData('json')">
+                                        <i class="fas fa-file-code me-2"></i>JSON
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="exportData('csv')">
+                                        <i class="fas fa-file-csv me-2"></i>CSV
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="exportData('excel')">
+                                        <i class="fas fa-file-excel me-2"></i>Excel
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Резервное копирование</label>
+                                <div class="btn-group w-100">
+                                    <button class="btn btn-outline-success" onclick="createBackup()">
+                                        <i class="fas fa-save me-2"></i>Создать бэкап
+                                    </button>
+                                    <button class="btn btn-outline-info" onclick="restoreBackup()">
+                                        <i class="fas fa-upload me-2"></i>Восстановить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button class="btn btn-primary" onclick="saveSystemSettings()">
+                                <i class="fas fa-save me-2"></i>Сохранить системные настройки
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API и интеграции -->
+            <div id="apiSection" class="settings-section d-none">
+                <div class="card border-0 shadow-sm fade-in-up">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-code me-2"></i>API и интеграции</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- API ключи -->
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="fas fa-key me-2"></i>API ключи</h6>
+                            <div class="alert alert-info border-0 mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                API ключи позволяют другим системам взаимодействовать с вашими данными
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Название</th>
+                                            <th>Ключ</th>
+                                            <th>Создан</th>
+                                            <th>Срок действия</th>
+                                            <th>Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="apiKeysTable">
+                                        <!-- API ключи будут загружены через JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button class="btn btn-primary mt-2" onclick="generateApiKey()">
+                                <i class="fas fa-plus me-2"></i>Создать новый API ключ
+                            </button>
+                        </div>
+
+                        <!-- Интеграции -->
+                        <div class="border-top pt-4">
+                            <h6 class="mb-3"><i class="fas fa-plug me-2"></i>Интеграции</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="card integration-card">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-shopping-cart fa-2x text-primary me-3"></i>
+                                                <div>
+                                                    <h6 class="mb-0">Интернет-магазин</h6>
+                                                    <small class="text-muted">Интеграция с WooCommerce</small>
+                                                </div>
+                                                <div class="form-check form-switch ms-auto">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="integrationShop">
+                                                </div>
+                                            </div>
+                                            <p class="small text-muted">
+                                                Синхронизация товаров и заказов с вашим интернет-магазином
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="card integration-card">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-truck fa-2x text-success me-3"></i>
+                                                <div>
+                                                    <h6 class="mb-0">Доставка</h6>
+                                                    <small class="text-muted">Интеграция с курьерскими службами</small>
+                                                </div>
+                                                <div class="form-check form-switch ms-auto">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="integrationDelivery">
+                                                </div>
+                                            </div>
+                                            <p class="small text-muted">
+                                                Автоматическое создание заказов на доставку
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="card integration-card">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-chart-line fa-2x text-info me-3"></i>
+                                                <div>
+                                                    <h6 class="mb-0">Аналитика</h6>
+                                                    <small class="text-muted">Google Analytics</small>
+                                                </div>
+                                                <div class="form-check form-switch ms-auto">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="integrationAnalytics">
+                                                </div>
+                                            </div>
+                                            <p class="small text-muted">
+                                                Отслеживание статистики продаж и посещаемости
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="card integration-card">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-envelope fa-2x text-warning me-3"></i>
+                                                <div>
+                                                    <h6 class="mb-0">Email рассылка</h6>
+                                                    <small class="text-muted">Mailchimp</small>
+                                                </div>
+                                                <div class="form-check form-switch ms-auto">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="integrationEmail">
+                                                </div>
+                                            </div>
+                                            <p class="small text-muted">
+                                                Интеграция с сервисами email рассылки
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button class="btn btn-primary" onclick="saveApiSettings()">
+                                <i class="fas fa-save me-2"></i>Сохранить настройки API
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Функции для страницы настроек
+class SettingsManager {
+    constructor() {
+        this.currentSection = 'profile';
+        this.unsavedChanges = false;
+        this.changesCount = 0;
+        this.init();
+    }
+    
+    init() {
+        this.loadSettings();
+        this.initEventListeners();
+        this.initPasswordStrength();
+        this.loadSessions();
+        this.loadApiKeys();
+        this.setupAutoSave();
+    }
+    
+    showSettingsSection(section) {
+        // Скрываем все секции
+        document.querySelectorAll('.settings-section').forEach(el => {
+            el.classList.remove('active');
+            el.classList.add('d-none');
+        });
+        
+        // Убираем активный класс у всех ссылок
+        document.querySelectorAll('.list-group-item-action').forEach(el => {
+            el.classList.remove('active');
+        });
+        
+        // Показываем выбранную секцию
+        document.getElementById(section + 'Section').classList.remove('d-none');
+        document.getElementById(section + 'Section').classList.add('active');
+        
+        // Активируем соответствующую ссылку
+        document.querySelector(`[href="#${section}"]`).classList.add('active');
+        
+        // Обновляем текущую секцию
+        this.currentSection = section;
+        
+        // Прокрутка к началу секции
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    loadSettings() {
+        // Загрузка настроек из localStorage
+        const settings = JSON.parse(localStorage.getItem('user_settings')) || {};
+        
+        // Загрузка настроек профиля
+        if (settings.profile) {
+            Object.keys(settings.profile).forEach(key => {
+                const input = document.querySelector(`[name="${key}"]`);
+                if (input) input.value = settings.profile[key];
+            });
+        }
+        
+        // Загрузка настроек уведомлений
+        if (settings.notifications) {
+            Object.keys(settings.notifications).forEach(key => {
+                const checkbox = document.getElementById(key);
+                if (checkbox) checkbox.checked = settings.notifications[key];
+            });
+        }
+        
+        // Загрузка настроек внешнего вида
+        if (settings.appearance) {
+            if (settings.appearance.theme) {
+                document.querySelector(`input[name="theme"][value="${settings.appearance.theme}"]`).checked = true;
+                selectTheme(settings.appearance.theme);
+            }
+            
+            if (settings.appearance.color) {
+                selectColor(settings.appearance.color);
+            }
+            
+            if (settings.appearance.density) {
+                document.querySelector(`input[name="density"][value="${settings.appearance.density}"]`).checked = true;
+                setDensity(settings.appearance.density);
+            }
+            
+            if (settings.appearance.fontSize) {
+                document.getElementById('fontSize').value = settings.appearance.fontSize;
+                updateFontSize(settings.appearance.fontSize);
+            }
+            
+            if (settings.appearance.fontFamily) {
+                document.getElementById('fontFamily').value = settings.appearance.fontFamily;
+                updateFontFamily(settings.appearance.fontFamily);
+            }
+        }
+        
+        // Загрузка системных настроек
+        if (settings.system) {
+            Object.keys(settings.system).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) element.value = settings.system[key];
+            });
+        }
+        
+        // Обновляем статистику
+        this.updateStats();
+    }
+    
+    saveSection(section) {
+        const data = {};
+        
+        switch(section) {
+            case 'profile':
+                data.profile = {
+                    email: document.querySelector('[name="email"]').value,
+                    full_name: document.querySelector('[name="full_name"]').value,
+                    phone: document.querySelector('[name="phone"]').value,
+                    bio: document.querySelector('[name="bio"]').value
+                };
+                break;
+                
+            case 'notifications':
+                data.notifications = {
+                    emailOrders: document.getElementById('emailOrders').checked,
+                    emailLowStock: document.getElementById('emailLowStock').checked,
+                    emailUpdates: document.getElementById('emailUpdates').checked,
+                    notifyTasks: document.getElementById('notifyTasks').checked,
+                    notifyComments: document.getElementById('notifyComments').checked,
+                    notifySystem: document.getElementById('notifySystem').checked,
+                    soundEnabled: document.getElementById('soundEnabled').checked,
+                    notificationVolume: document.getElementById('notificationVolume').value
+                };
+                break;
+                
+            case 'appearance':
+                data.appearance = {
+                    theme: document.querySelector('input[name="theme"]:checked').value,
+                    color: document.querySelector('.color-option.active')?.style.backgroundColor || '#7c3aed',
+                    density: document.querySelector('input[name="density"]:checked').value,
+                    fontSize: document.getElementById('fontSize').value,
+                    fontFamily: document.getElementById('fontFamily').value
+                };
+                break;
+                
+            case 'system':
+                data.system = {
+                    language: document.getElementById('language').value,
+                    timezone: document.getElementById('timezone').value,
+                    dateFormat: document.getElementById('dateFormat').value,
+                    timeFormat: document.getElementById('timeFormat').value,
+                    autoRefresh: document.getElementById('autoRefresh').checked,
+                    confirmActions: document.getElementById('confirmActions').checked,
+                    showTips: document.getElementById('showTips').checked,
+                    keyboardShortcuts: document.getElementById('keyboardShortcuts').checked
+                };
+                break;
+        }
+        
+        // Сохраняем в localStorage
+        const currentSettings = JSON.parse(localStorage.getItem('user_settings')) || {};
+        localStorage.setItem('user_settings', JSON.stringify({...currentSettings, ...data}));
+        
+        // Обновляем статистику
+        this.changesCount++;
+        this.updateStats();
+        
+        // Показываем уведомление
+        this.showSuccess(`Настройки "${this.getSectionName(section)}" сохранены`);
+        
+        this.unsavedChanges = false;
+    }
+    
+    saveAllSettings() {
+        this.saveSection('profile');
+        this.saveSection('notifications');
+        this.saveSection('appearance');
+        this.saveSection('system');
+        this.showSuccess('Все настройки сохранены');
+    }
+    
+    resetForm(formId) {
+        document.getElementById(formId).reset();
+        this.showInfo('Изменения отменены');
+    }
+    
+    getSectionName(section) {
+        const names = {
+            'profile': 'Профиль',
+            'security': 'Безопасность',
+            'notifications': 'Уведомления',
+            'appearance': 'Внешний вид',
+            'system': 'Системные',
+            'api': 'API'
+        };
+        return names[section] || section;
+    }
+    
+    updateStats() {
+        // Обновляем время последнего сохранения
+        const now = new Date();
+        document.getElementById('lastSaveTime').textContent = 
+            now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        
+        // Обновляем счетчик изменений
+        document.getElementById('todayChanges').textContent = this.changesCount;
+        
+        // Обновляем прогресс
+        const progress = Math.min(this.changesCount * 10, 100);
+        document.getElementById('settingsProgress').style.width = `${progress}%`;
+    }
+    
+    initEventListeners() {
+        // Отслеживание изменений в формах
+        document.querySelectorAll('input, select, textarea').forEach(element => {
+            element.addEventListener('change', () => {
+                this.unsavedChanges = true;
+            });
+        });
+        
+        // Предупреждение при закрытии страницы с несохраненными изменениями
+        window.addEventListener('beforeunload', (e) => {
+            if (this.unsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    }
+    
+    initPasswordStrength() {
+        const passwordInput = document.getElementById('newPassword');
+        if (passwordInput) {
+            passwordInput.addEventListener('input', this.checkPasswordStrength);
+        }
+    }
+    
+    checkPasswordStrength() {
+        const password = this.value;
+        let strength = 0;
+        
+        if (password.length >= 8) strength += 25;
+        if (/[A-Z]/.test(password)) strength += 25;
+        if (/[0-9]/.test(password)) strength += 25;
+        if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+        
+        const progressBar = document.getElementById('passwordStrength');
+        const helpText = document.getElementById('passwordHelp');
+        
+        progressBar.style.width = `${strength}%`;
+        
+        if (strength < 50) {
+            progressBar.className = 'progress-bar bg-danger';
+            helpText.textContent = 'Слабый пароль';
+        } else if (strength < 75) {
+            progressBar.className = 'progress-bar bg-warning';
+            helpText.textContent = 'Средний пароль';
+        } else {
+            progressBar.className = 'progress-bar bg-success';
+            helpText.textContent = 'Надежный пароль';
+        }
+    }
+    
+    async loadSessions() {
+        try {
+            const response = await fetch('/api/sessions');
+            if (response.ok) {
+                const sessions = await response.json();
+                this.renderSessions(sessions);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки сессий:', error);
+        }
+    }
+    
+    renderSessions(sessions) {
+        const table = document.getElementById('sessionsTable');
+        if (!table) return;
+        
+        table.innerHTML = sessions.map(session => `
+            <tr ${session.current ? 'class="table-active"' : ''}>
+                <td>
+                    <i class="fas ${session.device === 'mobile' ? 'fa-mobile-alt' : 'fa-laptop'} me-2"></i>
+                    ${session.browser} (${session.os})
+                </td>
+                <td>${session.location}</td>
+                <td>${new Date(session.lastActivity).toLocaleString('ru-RU')}</td>
+                <td>
+                    ${!session.current ? `
+                    <button class="btn btn-sm btn-outline-danger" onclick="terminateSession('${session.id}')">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                    ` : '<span class="badge bg-primary">Текущая</span>'}
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    async loadApiKeys() {
+        try {
+            const response = await fetch('/api/keys');
+            if (response.ok) {
+                const keys = await response.json();
+                this.renderApiKeys(keys);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки API ключей:', error);
+        }
+    }
+    
+    renderApiKeys(keys) {
+        const table = document.getElementById('apiKeysTable');
+        if (!table) return;
+        
+        table.innerHTML = keys.map(key => `
+            <tr>
+                <td>${key.name}</td>
+                <td>
+                    <code class="api-key" data-key="${key.key}">${key.key.substring(0, 8)}...</code>
+                    <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyApiKey('${key.key}')">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </td>
+                <td>${new Date(key.created).toLocaleDateString('ru-RU')}</td>
+                <td>${key.expires ? new Date(key.expires).toLocaleDateString('ru-RU') : 'Бессрочно'}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger" onclick="revokeApiKey('${key.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    setupAutoSave() {
+        // Автосохранение каждые 30 секунд
+        setInterval(() => {
+            if (this.unsavedChanges) {
+                this.saveSection(this.currentSection);
+            }
+        }, 30000);
+    }
+    
+    showSuccess(message) {
+        showNotification(message, 'success');
+    }
+    
+    showInfo(message) {
+        showNotification(message, 'info');
+    }
+}
+
+// Глобальные функции для работы с настройками
+function selectTheme(theme) {
+    document.querySelectorAll('input[name="theme"]').forEach(radio => {
+        radio.checked = radio.value === theme;
+    });
+    
+    if (theme === 'auto') {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    } else {
+        document.documentElement.setAttribute('data-theme', theme);
+    }
+    
+    localStorage.setItem('theme', theme);
+    settingsManager.unsavedChanges = true;
+}
+
+function selectColor(color) {
+    document.querySelectorAll('.color-option').forEach(option => {
+        option.classList.remove('active');
+    });
+    
+    event.target.classList.add('active');
+    
+    // Обновляем CSS переменную
+    document.documentElement.style.setProperty('--primary', color);
+    settingsManager.unsavedChanges = true;
+}
+
+function selectCustomColor(color) {
+    selectColor(color);
+}
+
+function resetColor() {
+    selectColor('#7c3aed');
+    document.getElementById('customColor').value = '#7c3aed';
+}
+
+function setDensity(density) {
+    document.body.classList.remove('density-compact', 'density-normal', 'density-comfortable');
+    document.body.classList.add(`density-${density}`);
+    settingsManager.unsavedChanges = true;
+}
+
+function updateFontSize(size) {
+    document.documentElement.style.fontSize = `${size}px`;
+    settingsManager.unsavedChanges = true;
+}
+
+function updateFontFamily(font) {
+    const fontMap = {
+        'system': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        'roboto': '"Roboto", sans-serif',
+        'open-sans': '"Open Sans", sans-serif',
+        'inter': '"Inter", sans-serif',
+        'montserrat': '"Montserrat", sans-serif'
+    };
+    
+    document.body.style.fontFamily = fontMap[font];
+    settingsManager.unsavedChanges = true;
+}
+
+function togglePasswordVisibility(inputId) {
+    const input = document.getElementById(inputId);
+    const button = event.target.closest('button');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        button.innerHTML = '<i class="fas fa-eye-slash"></i>';
+    } else {
+        input.type = 'password';
+        button.innerHTML = '<i class="fas fa-eye"></i>';
+    }
+}
+
+function generateStrongPassword() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let password = '';
+    
+    for (let i = 0; i < 12; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    
+    document.getElementById('newPassword').value = password;
+    document.getElementById('confirmPassword').value = password;
+    
+    // Триггерим проверку силы пароля
+    const event = new Event('input');
+    document.getElementById('newPassword').dispatchEvent(event);
+    
+    showNotification('Сгенерирован новый пароль', 'success');
+}
+
+async function changePassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (newPassword !== confirmPassword) {
+        showNotification('Пароли не совпадают', 'error');
+        return;
+    }
+    
+    if (newPassword.length < 8) {
+        showNotification('Пароль должен содержать минимум 8 символов', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentPassword, newPassword })
+        });
+        
+        if (response.ok) {
+            showNotification('Пароль успешно изменен', 'success');
+            document.getElementById('passwordForm').reset();
+        } else {
+            const error = await response.json();
+            showNotification(error.message || 'Ошибка изменения пароля', 'error');
+        }
+    } catch (error) {
+        showNotification('Ошибка соединения', 'error');
+    }
+}
+
+function toggleTwoFactorAuth() {
+    const enabled = document.getElementById('twoFactorToggle').checked;
+    const setupDiv = document.getElementById('twoFactorSetup');
+    
+    if (enabled) {
+        setupDiv.classList.remove('d-none');
+        generateTwoFactorSecret();
+    } else {
+        setupDiv.classList.add('d-none');
+    }
+}
+
+function generateTwoFactorSecret() {
+    // Генерация секретного ключа для 2FA
+    const secret = Array.from(crypto.getRandomValues(new Uint8Array(20)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    
+    document.getElementById('secretKey').textContent = secret;
+    
+    // Генерация QR-кода (в реальном приложении используйте библиотеку QR-кодов)
+    document.getElementById('qrcode').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-qrcode fa-3x text-muted"></i>
+            <p class="small mt-2">QR-код будет сгенерирован после сохранения настроек</p>
+        </div>
+    `;
+}
+
+async function terminateSession(sessionId) {
+    if (!confirm('Завершить эту сессию?')) return;
+    
+    try {
+        const response = await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' });
+        if (response.ok) {
+            showNotification('Сессия завершена', 'success');
+            settingsManager.loadSessions();
+        }
+    } catch (error) {
+        showNotification('Ошибка завершения сессии', 'error');
+    }
+}
+
+async function terminateAllSessions() {
+    if (!confirm('Завершить все сессии кроме текущей?')) return;
+    
+    try {
+        const response = await fetch('/api/sessions', { method: 'DELETE' });
+        if (response.ok) {
+            showNotification('Все сессии завершены', 'success');
+            settingsManager.loadSessions();
+        }
+    } catch (error) {
+        showNotification('Ошибка завершения сессий', 'error');
+    }
+}
+
+async function generateApiKey() {
+    const name = prompt('Введите название для нового API ключа:', 'Новый ключ');
+    if (!name) return;
+    
+    try {
+        const response = await fetch('/api/keys', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+        });
+        
+        if (response.ok) {
+            const key = await response.json();
+            showNotification(`API ключ создан: ${key.key}`, 'success');
+            settingsManager.loadApiKeys();
+        }
+    } catch (error) {
+        showNotification('Ошибка создания API ключа', 'error');
+    }
+}
+
+function copyApiKey(key) {
+    navigator.clipboard.writeText(key).then(() => {
+        showNotification('API ключ скопирован в буфер обмена', 'success');
+    }).catch(() => {
+        showNotification('Не удалось скопировать ключ', 'error');
+    });
+}
+
+async function revokeApiKey(keyId) {
+    if (!confirm('Отозвать этот API ключ?')) return;
+    
+    try {
+        const response = await fetch(`/api/keys/${keyId}`, { method: 'DELETE' });
+        if (response.ok) {
+            showNotification('API ключ отозван', 'success');
+            settingsManager.loadApiKeys();
+        }
+    } catch (error) {
+        showNotification('Ошибка отзыва ключа', 'error');
+    }
+}
+
+function saveNotificationSettings() {
+    settingsManager.saveSection('notifications');
+}
+
+function saveAppearanceSettings() {
+    settingsManager.saveSection('appearance');
+}
+
+function saveSystemSettings() {
+    settingsManager.saveSection('system');
+}
+
+function saveApiSettings() {
+    // Сохранение настроек интеграций
+    const integrations = {
+        shop: document.getElementById('integrationShop').checked,
+        delivery: document.getElementById('integrationDelivery').checked,
+        analytics: document.getElementById('integrationAnalytics').checked,
+        email: document.getElementById('integrationEmail').checked
+    };
+    
+    localStorage.setItem('integrations', JSON.stringify(integrations));
+    showNotification('Настройки API сохранены', 'success');
+}
+
+function exportData(format) {
+    showNotification(`Экспорт данных в формате ${format.toUpperCase()} начат`, 'info');
+    // В реальном приложении здесь будет запрос к серверу для экспорта данных
+}
+
+function createBackup() {
+    showNotification('Создание резервной копии...', 'info');
+    // В реальном приложении здесь будет запрос к серверу для создания бэкапа
+}
+
+function restoreBackup() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,.backup';
+    input.onchange = () => {
+        if (confirm('Восстановить данные из выбранного файла?')) {
+            showNotification('Восстановление данных...', 'info');
+        }
+    };
+    input.click();
+}
+
+function handleAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+        showNotification('Пожалуйста, выберите изображение', 'error');
+        return;
+    }
+    
+    if (file.size > 2 * 1024 * 1024) {
+        showNotification('Размер файла не должен превышать 2MB', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.querySelector('.user-avatar-lg').style.backgroundImage = `url(${e.target.result})`;
+        showNotification('Аватар загружен', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeAvatar() {
+    if (confirm('Удалить текущий аватар?')) {
+        document.querySelector('.user-avatar-lg').style.backgroundImage = '';
+        showNotification('Аватар удален', 'info');
+    }
+}
+
+function generateAvatar() {
+    const colors = ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    document.querySelector('.user-avatar-lg').style.background = `linear-gradient(135deg, ${color}, ${color}dd)`;
+    showNotification('Аватар сгенерирован', 'success');
+}
+
+function loadDefaultSettings() {
+    if (confirm('Сбросить все настройки к заводским?')) {
+        localStorage.removeItem('user_settings');
+        localStorage.removeItem('integrations');
+        location.reload();
+    }
+}
+
+function resetAppearance() {
+    selectTheme('light');
+    resetColor();
+    setDensity('normal');
+    updateFontSize('14');
+    updateFontFamily('system');
+    showNotification('Настройки внешнего вида сброшены', 'info');
+}
+
+// Инициализация при загрузке страницы
+let settingsManager;
+document.addEventListener('DOMContentLoaded', () => {
+    settingsManager = new SettingsManager();
+});
+</script>
+
+<style>
+/* Дополнительные стили для страницы настроек */
+.settings-section.active {
+    display: block !important;
+}
+
+.user-avatar-lg {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 2.5rem;
+    background-size: cover;
+    background-position: center;
+    transition: all var(--transition-fast);
+}
+
+.list-group-item-action.active {
+    background: linear-gradient(90deg, 
+        rgba(124, 58, 237, 0.1) 0%, 
+        rgba(219, 39, 119, 0.1) 100%);
+    color: var(--primary) !important;
+    border-left: 3px solid var(--primary);
+}
+
+.theme-option {
+    cursor: pointer;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.theme-option:hover {
+    background: rgba(124, 58, 237, 0.05);
+}
+
+.theme-preview {
+    height: 80px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 2px solid var(--border-light);
+}
+
+.theme-preview.light {
+    background: white;
+}
+
+.theme-preview.dark {
+    background: #1e293b;
+}
+
+.theme-preview.auto {
+    background: linear-gradient(to right, white 50%, #1e293b 50%);
+}
+
+.theme-preview .theme-header {
+    height: 20px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.theme-preview .theme-content {
+    height: 60px;
+    padding: 10px;
+}
+
+.theme-preview.light .theme-content {
+    background: #f8fafc;
+}
+
+.theme-preview.dark .theme-content {
+    background: #334155;
+}
+
+.theme-preview.auto .theme-content {
+    background: linear-gradient(to right, #f8fafc 50%, #334155 50%);
+}
+
+.color-palette {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.color-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 3px solid transparent;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.active {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--border-light);
+}
+
+.density-option {
+    cursor: pointer;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.density-option:hover {
+    background: rgba(124, 58, 237, 0.05);
+}
+
+.density-preview {
+    height: 60px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-light);
+    position: relative;
+    overflow: hidden;
+}
+
+.density-preview.compact::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    right: 10px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+.density-preview.compact::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 10px;
+    right: 10px;
+    height: 4px;
+    background: var(--text-secondary);
+    border-radius: 2px;
+}
+
+.density-preview.normal::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    height: 12px;
+    background: var(--primary);
+    border-radius: 6px;
+}
+
+.density-preview.normal::after {
+    content: '';
+    position: absolute;
+    top: 30px;
+    left: 10px;
+    right: 10px;
+    height: 6px;
+    background: var(--text-secondary);
+    border-radius: 3px;
+}
+
+.density-preview.comfortable::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 10px;
+    right: 10px;
+    height: 16px;
+    background: var(--primary);
+    border-radius: 8px;
+}
+
+.density-preview.comfortable::after {
+    content: '';
+    position: absolute;
+    top: 40px;
+    left: 10px;
+    right: 10px;
+    height: 8px;
+    background: var(--text-secondary);
+    border-radius: 4px;
+}
+
+.preview-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.preview-header {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 10px 15px;
+    font-weight: 600;
+}
+
+.preview-body {
+    padding: 15px;
+    color: var(--text-primary);
+}
+
+.preview-footer {
+    padding: 10px 15px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    gap: 10px;
+}
+
+.integration-card {
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-fast);
+    height: 100%;
+}
+
+.integration-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+}
+
+.api-key {
+    font-family: monospace;
+    background: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+/* Классы плотности интерфейса */
+.density-compact {
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 20px;
+    font-size: 13px;
+}
+
+.density-normal {
+    --spacing-xs: 6px;
+    --spacing-sm: 12px;
+    --spacing-md: 16px;
+    --spacing-lg: 20px;
+    --spacing-xl: 24px;
+    font-size: 14px;
+}
+
+.density-comfortable {
+    --spacing-xs: 8px;
+    --spacing-sm: 16px;
+    --spacing-md: 24px;
+    --spacing-lg: 32px;
+    --spacing-xl: 40px;
+    font-size: 15px;
+}
+
+/* Применение переменных плотности */
+.card {
+    margin-bottom: var(--spacing-md);
+}
+
+.card-body {
+    padding: var(--spacing-md);
+}
+
+.btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+}
+
+/* Адаптивность */
+@media (max-width: 992px) {
+    .user-avatar-lg {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+    }
+    
+    .color-palette {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .settings-section {
+        margin-top: 20px;
+    }
+    
+    .theme-option, .density-option {
+        margin-bottom: 15px;
+    }
+}
+</style>
+{% endblock %}

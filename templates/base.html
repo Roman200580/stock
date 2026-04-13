@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}🚀 StockSync Pro{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* НОВАЯ ЦВЕТОВАЯ ПАЛИТРА - Совершенно другая! */
+        :root {
+            /* Основные цвета - фиолетово-розовая гамма */
+            --primary: #7c3aed;
+            --primary-dark: #5b21b6;
+            --primary-light: #8b5cf6;
+            --secondary: #db2777;
+            --accent: #ec4899;
+            
+            /* Акцентные цвета - яркие и контрастные */
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #0ea5e9;
+            
+            /* Фоновые цвета - светлая тема */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: #ffffff;
+            
+            /* Цвета текста */
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            
+            /* Границы */
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+            
+            /* Тени */
+            --shadow-sm: 0 2px 12px rgba(124, 58, 237, 0.08);
+            --shadow-md: 0 8px 30px rgba(124, 58, 237, 0.12);
+            --shadow-lg: 0 20px 50px rgba(124, 58, 237, 0.18);
+            
+            /* Скругления */
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            
+            /* Анимации */
+            --transition-fast: 200ms ease;
+            --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 500ms ease;
+        }
+
+        /* ТЕМНАЯ ТЕМА - новая палитра */
+        [data-theme="dark"] {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --primary-light: #a78bfa;
+            --secondary: #f472b6;
+            --accent: #f9a8d4;
+            
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --info: #60a5fa;
+            
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-card: #1e293b;
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            
+            --border-light: #334155;
+            --border-medium: #475569;
+            
+            --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.35);
+            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.45);
+        }
+
+        /* БАЗОВЫЕ СТИЛИ */
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: linear-gradient(135deg, 
+                var(--bg-secondary) 0%, 
+                var(--bg-tertiary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background var(--transition-base);
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, 
+                #0c1425 0%, 
+                var(--bg-primary) 100%);
+        }
+
+        /* НАВИГАЦИЯ - новый дизайн */
+        .navbar {
+            background: rgba(var(--bg-card-rgb), 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-light);
+            padding: 0.8rem 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, 
+                var(--primary) 0%, 
+                var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-link {
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--radius-md);
+            margin: 0 0.25rem;
+            color: var(--text-secondary) !important;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(135deg, 
+                var(--primary) 0%, 
+                var(--secondary) 100%);
+            border-radius: 3px 3px 0 0;
+            transform: translateX(-50%);
+            transition: width var(--transition-fast);
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary) !important;
+            transform: translateY(-1px);
+        }
+
+        .nav-link:hover::before {
+            width: 60%;
+        }
+
+        .nav-link.active {
+            color: var(--primary) !important;
+            background: linear-gradient(135deg, 
+                rgba(124, 58, 237, 0.1) 0%, 
+                rgba(219, 39, 119, 0.1) 100%);
+        }
+
+        .nav-link.active::before {
+            width: 80%;
+        }
+
+        /* БОКОВАЯ ПАНЕЛЬ - новый дизайн */
+        .sidebar {
+            background: linear-gradient(180deg, 
+                var(--bg-card) 0%, 
+                rgba(124, 58, 237, 0.03) 100%);
+            border-right: 1px solid var(--border-light);
+            height: calc(100vh - 72px);
+            position: sticky;
+            top: 72px;
+            overflow-y: auto;
+            padding: 1.5rem 0;
+        }
+
+        [data-theme="dark"] .sidebar {
+            background: linear-gradient(180deg, 
+                var(--bg-card) 0%, 
+                rgba(139, 92, 246, 0.05) 100%);
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 0.9rem 1.5rem;
+            margin: 0.4rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item:hover {
+            background: linear-gradient(90deg, 
+                rgba(124, 58, 237, 0.08) 0%, 
+                rgba(219, 39, 119, 0.08) 100%);
+            color: var(--primary);
+            transform: translateX(8px);
+            border-left-color: var(--primary);
+        }
+
+        .sidebar-item.active {
+            background: linear-gradient(90deg, 
+                rgba(124, 58, 237, 0.15) 0%, 
+                rgba(219, 39, 119, 0.15) 100%);
+            color: var(--primary);
+            font-weight: 600;
+            border-left-color: var(--secondary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-item i {
+            width: 22px;
+            margin-right: 1rem;
+            font-size: 1.2rem;
+            transition: transform var(--transition-fast);
+        }
+
+        .sidebar-item:hover i {
+            transform: scale(1.2);
+        }
+
+        /* КАРТОЧКИ - новый дизайн */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-base);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, 
+                var(--primary) 0%, 
+                var(--secondary) 100%);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-light);
+            padding: 1.5rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* КНОПКИ - новый дизайн */
+        .btn {
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            padding: 0.75rem 1.75rem;
+            border: 2px solid transparent;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, 
+                var(--primary) 0%, 
+                var(--secondary) 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(124, 58, 237, 0.35);
+        }
+
+        .btn-outline-primary {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, 
+                var(--primary) 0%, 
+                var(--secondary) 100%);
+            color: white;
+            transform: translateY(-3px);
+            border-color: transparent;
+        }
+
+        /* ТАБЛИЦЫ - новый дизайн */
+        .table-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+
+        .table {
+            margin-bottom: 0;
+            color: var(--text-primary);
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, 
+                var(--primary) 0%, 
+                var(--secondary) 100%);
+            color: white;
+            font-weight: 700;
+            border: none;
+            padding: 1.2rem 1.5rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table tbody td {
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid var(--border-light);
+            vertical-align: middle;
+            transition: background var(--transition-fast);
+        }
+
+        .table tbody tr {
+            transition: all var(--transition-fast);
+        }
+
+        .table tbody tr:hover {
+            background: linear-gradient(90deg, 
+                rgba(124, 58, 237, 0.05) 0%, 
+                rgba(219, 39, 119, 0.05) 100%);
+            transform: scale(1.005);
+        }
+
+        /* ФОРМЫ - новый дизайн */
+        .form-control, .form-select {
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 0.85rem 1.2rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all var(--transition-fast);
+            font-weight: 500;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* БЕЙДЖИ - новый дизайн */
+        .badge {
+            border-radius: 20px;
+            padding: 0.4rem 0.9rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .badge-primary {
+            background: linear-gradient(135deg, 
+                var(--primary) 0%, 
+                var(--secondary) 100%);
+            color: white;
+        }
+
+        /* АНИМАЦИИ */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* СТАТИСТИЧЕСКИЕ КАРТОЧКИ - новый дизайн */
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, 
+                rgba(124, 58, 237, 0.1) 0%, 
+                rgba(219, 39, 119, 0.1) 100%);
+            border-radius: 0 0 0 100%;
+            transition: transform var(--transition-base);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+        }
+
+        .stat-card:hover::after {
+            transform: scale(1.2);
+        }
+
+        /* УТИЛИТЫ */
+        .gradient-text {
+            background: linear-gradient(135deg, 
+                var(--primary) 0%, 
+                var(--secondary) 50%, 
+                var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, 
+                var(--primary) 0%, 
+                var(--secondary) 100%);
+        }
+
+        .glass-effect {
+            background: rgba(var(--bg-card-rgb), 0.7);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(124, 58, 237, 0.1);
+        }
+
+        /* СКРОЛЛБАР */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, 
+                var(--primary) 0%, 
+                var(--secondary) 100%);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, 
+                var(--secondary) 0%, 
+                var(--primary) 100%);
+        }
+
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -300px;
+                width: 280px;
+                height: 100vh;
+                z-index: 1050;
+                transition: left var(--transition-base);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .stat-card:hover {
+                transform: translateY(-2px);
+            }
+
+            .card:hover {
+                transform: translateY(-4px);
+            }
+        }
+
+        /* АВАТАР ПОЛЬЗОВАТЕЛЯ */
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, 
+                var(--primary) 0%, 
+                var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* УВЕДОМЛЕНИЯ */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, 
+                var(--danger) 0%, 
+                var(--warning) 100%);
+            color: white;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <!-- Верхняя панель -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container-fluid">
+            <!-- Кнопка меню для мобильных -->
+            <button class="btn btn-link d-lg-none me-3" onclick="toggleSidebar()">
+                <i class="fas fa-bars fa-lg" style="color: var(--primary);"></i>
+            </button>
+            
+            <!-- Логотип -->
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <i class="fas fa-layer-group me-2"></i>
+                StockSync Pro
+            </a>
+
+            {% if current_user.is_authenticated %}
+            <div class="navbar-nav ms-auto align-items-center">
+                <!-- Кнопка темы -->
+                <button class="btn btn-sm me-3" onclick="toggleTheme()" 
+                        style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none;">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+
+                <!-- Быстрый поиск -->
+                <div class="me-3 position-relative">
+                    <input type="text" class="form-control form-control-sm" 
+                           placeholder="Поиск..." 
+                           style="width: 200px; border-radius: 20px; padding-left: 2.5rem;">
+                    <i class="fas fa-search position-absolute" 
+                       style="left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                </div>
+
+                <!-- Уведомления -->
+                <div class="dropdown me-3">
+                    <button class="btn btn-sm position-relative p-2" 
+                            data-bs-toggle="dropdown"
+                            style="background: none; border: 1px solid var(--border-light); border-radius: 10px;">
+                        <i class="fas fa-bell" style="color: var(--text-secondary);"></i>
+                        <span class="notification-badge" id="notificationCount">3</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-0" style="min-width: 320px;">
+                        <div class="p-3 border-bottom">
+                            <h6 class="mb-0">Уведомления</h6>
+                        </div>
+                        <div id="notificationList" class="p-2" style="max-height: 350px; overflow-y: auto;">
+                            <!-- Уведомления будут здесь -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Профиль пользователя -->
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle px-2 py-1 rounded" 
+                       data-bs-toggle="dropdown"
+                       style="border: 1px solid var(--border-light);">
+                        <div class="user-avatar me-2">
+                            {{ current_user.username[:1]|upper }}
+                        </div>
+                        <div class="d-none d-md-block">
+                            <div class="fw-semibold" style="font-size: 0.9rem;">{{ current_user.username }}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{{ current_user.role.value|title }}</small>
+                        </div>
+                        <i class="fas fa-chevron-down ms-2" style="font-size: 0.8rem; color: var(--text-muted);"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end" style="min-width: 200px;">
+                        <div class="px-3 py-2 border-bottom">
+                            <div class="fw-semibold">{{ current_user.username }}</div>
+                            <small class="text-muted">{{ current_user.email }}</small>
+                        </div>
+                        <a class="dropdown-item" href="{{ url_for('settings_2fa') }}">
+                           <i class="fas fa-cog me-2"></i>Настройки                 <!-- И ЭТУ СТРОКУ -->
+                        </a> 
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-user me-2"></i>Профиль
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Выйти
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Боковая панель -->
+            {% if current_user.is_authenticated %}
+            <div class="col-lg-2 sidebar d-none d-lg-block" id="sidebar">
+                <div class="py-4">
+                    <!-- Заголовок раздела -->
+                    <div class="px-3 mb-4">
+                        <small class="text-uppercase fw-bold" style="color: var(--primary); letter-spacing: 0.05em;">
+                            <i class="fas fa-compass me-2"></i>Навигация
+                        </small>
+                    </div>
+                    
+                    <nav class="nav flex-column">
+                        <!-- Администратор -->
+                        {% if current_user.is_admin() %}
+                        <div class="px-3 mb-2 mt-4">
+    <small class="text-uppercase fw-semibold" style="color: var(--text-muted); font-size: 0.75rem;">
+        <i class="fas fa-shield-alt me-2"></i>Администрирование
+    </small>
+</div>
+<a href="{{ url_for('dashboard') }}" class="sidebar-item {{ 'active' if request.endpoint == 'dashboard' }}">
+    <i class="fas fa-tachometer-alt"></i>  <!-- Исправлено с fa-gauge-high -->
+    <span>Панель управления</span>
+</a>
+<a href="{{ url_for('admin_users') }}" class="sidebar-item {{ 'active' if request.endpoint == 'admin_users' }}">
+    <i class="fas fa-users-cog"></i>
+    <span>Пользователи</span>
+</a>
+<a href="{{ url_for('products') }}" class="sidebar-item {{ 'active' if request.endpoint == 'products' }}">
+    <i class="fas fa-box"></i>  <!-- Исправлено с fa-boxes-packing -->
+    <span>Товары</span>
+</a>
+<a href="{{ url_for('admin_categories') }}" class="sidebar-item {{ 'active' if request.endpoint == 'admin_categories' }}">
+    <i class="fas fa-tags"></i>
+    <span>Категории</span>
+</a>
+<a href="{{ url_for('admin_suppliers') }}" class="sidebar-item {{ 'active' if request.endpoint == 'admin_suppliers' }}">
+    <i class="fas fa-truck"></i>  <!-- Исправлено с fa-truck-field -->
+    <span>Поставщики</span>
+</a>
+
+<div class="px-3 mb-2 mt-4">
+    <small class="text-uppercase fw-semibold" style="color: var(--text-muted); font-size: 0.75rem;">
+        <i class="fas fa-chart-line me-2"></i>Аналитика
+    </small>
+</div>
+<a href="{{ url_for('analytics') }}" class="sidebar-item {{ 'active' if request.endpoint == 'analytics' }}">
+    <i class="fas fa-chart-bar"></i>  <!-- Исправлено с fa-chart-network -->
+    <span>Аналитика</span>
+</a>
+<a href="{{ url_for('orders') }}" class="sidebar-item {{ 'active' if request.endpoint == 'orders' }}">
+    <i class="fas fa-clipboard-list"></i>  <!-- Исправлено с fa-clipboard-list-check -->
+    <span>Заказы</span>
+</a>
+<a href="{{ url_for('api_docs') }}" class="sidebar-item {{ 'active' if request.endpoint == 'api_docs' }}">
+    <i class="fas fa-code"></i>  <!-- Исправлено с fa-code-branch -->
+    <span>API Документация</span>
+</a>
+
+                        <!-- Кладовщик -->
+                        {% elif current_user.is_storekeeper() %}
+                        <div class="px-3 mb-2 mt-4">
+    <small class="text-uppercase fw-semibold" style="color: var(--text-muted); font-size: 0.75rem;">
+        <i class="fas fa-warehouse me-2"></i>Складские операции
+    </small>
+</div>
+<a href="{{ url_for('dashboard') }}" class="sidebar-item {{ 'active' if request.endpoint == 'dashboard' }}">
+    <i class="fas fa-tachometer-alt"></i>  <!-- Исправлено с fa-gauge-high -->
+    <span>Дашборд</span>
+</a>
+<a href="{{ url_for('products') }}" class="sidebar-item {{ 'active' if request.endpoint == 'products' }}">
+    <i class="fas fa-pallet"></i>  <!-- Исправлено с fa-pallet-box -->
+    <span>Склад</span>
+</a>
+<a href="{{ url_for('inventory_list') }}" class="sidebar-item {{ 'active' if request.endpoint == 'inventory_list' }}">
+    <i class="fas fa-clipboard-check"></i>  <!-- Исправлено с fa-clipboard-checklist -->
+    <span>Инвентаризация</span>
+</a>
+<a href="{{ url_for('receive_goods') }}" class="sidebar-item {{ 'active' if request.endpoint == 'receive_goods' }}">
+    <i class="fas fa-arrow-down"></i>  <!-- Исправлено с fa-arrow-down-to-arc -->
+    <span>Приём товара</span>
+</a>
+<a href="{{ url_for('ship_goods') }}" class="sidebar-item {{ 'active' if request.endpoint == 'ship_goods' }}">
+    <i class="fas fa-arrow-up"></i>  <!-- Исправлено с fa-arrow-up-from-arc -->
+    <span>Отгрузка</span>
+</a>
+<a href="{{ url_for('orders') }}" class="sidebar-item {{ 'active' if request.endpoint == 'orders' }}">
+    <i class="fas fa-truck-loading"></i>
+    <span>Заказы</span>
+</a>
+
+                        <!-- Сотрудник -->
+                        {% elif current_user.is_employee() %}
+                        <div class="px-3 mb-2 mt-4">
+    <small class="text-uppercase fw-semibold" style="color: var(--text-muted); font-size: 0.75rem;">
+        <i class="fas fa-briefcase me-2"></i>Рабочее место
+    </small>
+</div>
+<a href="{{ url_for('dashboard') }}" class="sidebar-item {{ 'active' if request.endpoint == 'dashboard' }}">
+    <i class="fas fa-home"></i>  <!-- Исправлено с fa-house-chimney -->
+    <span>Главная</span>
+</a>
+<a href="{{ url_for('products') }}" class="sidebar-item {{ 'active' if request.endpoint == 'products' }}">
+    <i class="fas fa-search"></i>  <!-- Исправлено с fa-magnifying-glass-chart -->
+    <span>Поиск товаров</span>
+</a>
+<a href="{{ url_for('orders') }}" class="sidebar-item {{ 'active' if request.endpoint == 'orders' }}">
+    <i class="fas fa-history"></i>  <!-- Исправлено с fa-clock-rotate-left -->
+    <span>Мои заказы</span>
+</a>
+<a href="{{ url_for('create_order') }}" class="sidebar-item {{ 'active' if request.endpoint == 'create_order' }}">
+    <i class="fas fa-plus-circle"></i>  <!-- Исправлено с fa-circle-plus -->
+    <span>Новый заказ</span>
+</a>
+                        <!-- Клиент -->
+                        {% else %}
+                        <div class="px-3 mb-2 mt-4">
+                            <small class="text-uppercase fw-semibold" style="color: var(--text-muted); font-size: 0.75rem;">
+                                <i class="fas fa-store me-2"></i>Магазин
+                            </small>
+                        </div>
+                        <a href="{{ url_for('public_catalog') }}" class="sidebar-item {{ 'active' if request.endpoint == 'public_catalog' }}">
+                            <i class="fas fa-shop"></i>
+                            <span>Каталог</span>
+                        </a>
+                        <a href="{{ url_for('products') }}" class="sidebar-item {{ 'active' if request.endpoint == 'products' }}">
+                            <i class="fas fa-box-archive"></i>
+                            <span>Товары</span>
+                        </a>
+                        <a href="{{ url_for('orders') }}" class="sidebar-item {{ 'active' if request.endpoint == 'orders' }}">
+                            <i class="fas fa-bag-shopping"></i>
+                            <span>Мои заказы</span>
+                        </a>
+                        <a href="{{ url_for('create_order') }}" class="sidebar-item {{ 'active' if request.endpoint == 'create_order' }}">
+                            <i class="fas fa-cart-shopping"></i>
+                            <span>Корзина</span>
+                        </a>
+                        {% endif %}
+                    </nav>
+                    
+                    <!-- Статистика в сайдбаре -->
+                    
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Основной контент -->
+            <main class="{{ 'col-lg-10' if current_user.is_authenticated else 'col-12' }} p-4">
+                <!-- Flash сообщения -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show mb-4 fade-in-up" 
+                                 role="alert" style="border: none;">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle p-2 me-3" 
+                                         style="background: {{ 'linear-gradient(135deg, #ef4444, #f87171)' if category == 'error' else 'linear-gradient(135deg, #10b981, #34d399)' }};">
+                                        <i class="fas {{ 'fa-exclamation-circle' if category == 'error' else 'fa-check-circle' }} text-white"></i>
+                                    </div>
+                                    <div class="flex-grow-1">{{ message }}</div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Контент страницы -->
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Конфигурация CSS переменных
+        document.documentElement.style.setProperty('--bg-card-rgb', '255, 255, 255');
+        
+        // Управление темой
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            const icon = document.getElementById('themeIcon');
+            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            
+            // Обновляем RGB переменную для стеклянного эффекта
+            const rgbValue = newTheme === 'dark' ? '30, 41, 59' : '255, 255, 255';
+            document.documentElement.style.setProperty('--bg-card-rgb', rgbValue);
+            
+            showNotification(`Тема: ${newTheme === 'dark' ? 'Тёмная' : 'Светлая'}`, 'info');
+        }
+
+        // Инициализация темы
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+            
+            // Устанавливаем RGB переменную
+            const rgbValue = savedTheme === 'dark' ? '30, 41, 59' : '255, 255, 255';
+            document.documentElement.style.setProperty('--bg-card-rgb', rgbValue);
+            
+            // Автозакрытие алертов
+            setTimeout(() => {
+                document.querySelectorAll('.alert').forEach(alert => {
+                    bootstrap.Alert.getOrCreateInstance(alert).close();
+                });
+            }, 6000);
+            
+            // Загрузка уведомлений
+            loadNotifications();
+            
+            // Анимация элементов при загрузке
+            animateElements();
+        });
+
+        // Управление боковой панелью на мобильных
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('show');
+            
+            // Затемнение фона
+            const overlay = document.getElementById('sidebarOverlay') || createSidebarOverlay();
+            if (sidebar.classList.contains('show')) {
+                overlay.style.display = 'block';
+                setTimeout(() => overlay.classList.add('show'), 10);
+            } else {
+                overlay.classList.remove('show');
+                setTimeout(() => overlay.style.display = 'none', 300);
+            }
+        }
+
+        function createSidebarOverlay() {
+            const overlay = document.createElement('div');
+            overlay.id = 'sidebarOverlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1040;
+                display: none;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            `;
+            overlay.classList.add('d-lg-none');
+            overlay.onclick = toggleSidebar;
+            document.body.appendChild(overlay);
+            
+            overlay.addEventListener('transitionend', function() {
+                if (!this.classList.contains('show')) {
+                    this.style.display = 'none';
+                }
+            });
+            
+            return overlay;
+        }
+
+        // Показать уведомление
+        function showNotification(message, type = 'info', duration = 4000) {
+            const container = document.querySelector('.toast-container') || createToastContainer();
+            const toast = document.createElement('div');
+            toast.className = 'toast align-items-center border-0 fade-in-up';
+            toast.style.cssText = `
+                background: var(--bg-card);
+                border: 1px solid var(--border-light);
+                border-left: 4px solid ${type === 'success' ? 'var(--success)' : 
+                                     type === 'error' ? 'var(--danger)' : 
+                                     type === 'warning' ? 'var(--warning)' : 'var(--info)'};
+                color: var(--text-primary);
+                box-shadow: var(--shadow-md);
+                margin-bottom: 1rem;
+                max-width: 350px;
+            `;
+            
+            toast.innerHTML = `
+                <div class="toast-body d-flex align-items-center p-3">
+                    <div class="rounded-circle p-2 me-3" 
+                         style="background: ${type === 'success' ? 'linear-gradient(135deg, var(--success), rgba(16, 185, 129, 0.2))' : 
+                                     type === 'error' ? 'linear-gradient(135deg, var(--danger), rgba(239, 68, 68, 0.2))' : 
+                                     type === 'warning' ? 'linear-gradient(135deg, var(--warning), rgba(245, 158, 11, 0.2))' : 
+                                     'linear-gradient(135deg, var(--info), rgba(14, 165, 233, 0.2))'}">
+                        <i class="fas ${type === 'success' ? 'fa-check' : 
+                                     type === 'error' ? 'fa-exclamation' : 
+                                     type === 'warning' ? 'fa-triangle-exclamation' : 'fa-info'} text-white"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold" style="font-size: 0.9rem;">${message}</div>
+                    </div>
+                    <button type="button" class="btn-close ms-3" data-bs-dismiss="toast" style="filter: invert(0.5);"></button>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast, { delay: duration });
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            container.style.zIndex = '1060';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        // Загрузка уведомлений
+        async function loadNotifications() {
+            try {
+                // Имитация загрузки уведомлений
+                const notifications = [
+                    {
+                        id: 1,
+                        title: 'Низкий запас товара',
+                        message: 'Товар "Монитор Samsung" достиг минимального запаса',
+                        time: '5 мин назад',
+                        type: 'warning',
+                        icon: 'exclamation-triangle'
+                    },
+                    {
+                        id: 2,
+                        title: 'Новый заказ',
+                        message: 'Поступил заказ #215 от Иванов Иван',
+                        time: '15 мин назад',
+                        type: 'info',
+                        icon: 'cart-plus'
+                    },
+                    {
+                        id: 3,
+                        title: 'Заказ выполнен',
+                        message: 'Заказ #210 был успешно отгружен',
+                        time: '2 часа назад',
+                        type: 'success',
+                        icon: 'check-circle'
+                    }
+                ];
+                
+                const list = document.getElementById('notificationList');
+                if (list) {
+                    list.innerHTML = '';
+                    notifications.forEach(notification => {
+                        const item = document.createElement('a');
+                        item.href = '#';
+                        item.className = 'dropdown-item d-flex align-items-start py-3 border-bottom';
+                        item.style.cssText = `
+                            border-color: var(--border-light) !important;
+                            transition: all var(--transition-fast);
+                        `;
+                        item.onmouseenter = function() {
+                            this.style.background = 'rgba(124, 58, 237, 0.05)';
+                        };
+                        item.onmouseleave = function() {
+                            this.style.background = 'transparent';
+                        };
+                        
+                        item.innerHTML = `
+                            <div class="flex-shrink-0 me-3">
+                                <div class="rounded-circle p-2" 
+                                     style="background: ${notification.type === 'warning' ? 
+                                         'linear-gradient(135deg, var(--warning), rgba(245, 158, 11, 0.2))' : 
+                                         notification.type === 'success' ? 
+                                         'linear-gradient(135deg, var(--success), rgba(16, 185, 129, 0.2))' : 
+                                         'linear-gradient(135deg, var(--info), rgba(14, 165, 233, 0.2))'}">
+                                    <i class="fas fa-${notification.icon}" 
+                                       style="color: ${notification.type === 'warning' ? 'var(--warning)' : 
+                                               notification.type === 'success' ? 'var(--success)' : 'var(--info)'}"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold mb-1">${notification.title}</div>
+                                <div class="small text-muted mb-1">${notification.message}</div>
+                                <div class="small" style="color: var(--primary);">${notification.time}</div>
+                            </div>
+                        `;
+                        list.appendChild(item);
+                    });
+                    
+                    // Добавляем ссылку на все уведомления
+                    const allNotifications = document.createElement('a');
+                    allNotifications.href = '#';
+                    allNotifications.className = 'dropdown-item text-center py-2';
+                    allNotifications.innerHTML = `
+                        <small class="fw-semibold" style="color: var(--primary);">
+                            <i class="fas fa-eye me-1"></i> Показать все
+                        </small>
+                    `;
+                    list.appendChild(allNotifications);
+                }
+                
+                // Обновляем счетчик
+                const countElement = document.getElementById('notificationCount');
+                if (countElement) {
+                    countElement.textContent = notifications.length;
+                    if (notifications.length > 0) {
+                        countElement.classList.add('pulse');
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки уведомлений:', error);
+            }
+        }
+
+        // Анимация элементов при загрузке
+        function animateElements() {
+            const cards = document.querySelectorAll('.card, .stat-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 100}ms`;
+                card.classList.add('fade-in-up');
+            });
+            
+            // Анимация сайдбара
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            sidebarItems.forEach((item, index) => {
+                item.style.animationDelay = `${index * 50}ms`;
+                item.classList.add('slide-in-right');
+            });
+        }
+
+        // Горячие клавиши
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'k':
+                        e.preventDefault();
+                        document.querySelector('input[type="search"]')?.focus();
+                        break;
+                    case 'n':
+                        e.preventDefault();
+                        const addBtn = document.querySelector('.btn-primary[data-bs-toggle="modal"]');
+                        if (addBtn) addBtn.click();
+                        break;
+                    case 'd':
+                        e.preventDefault();
+                        toggleTheme();
+                        break;
+                }
+            }
+            
+            // Escape закрывает сайдбар
+            if (e.key === 'Escape') {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar && sidebar.classList.contains('show')) {
+                    toggleSidebar();
+                }
+            }
+        });
+
+        // Режим реального времени
+        function setupRealTimeUpdates() {
+            // Обновление уведомлений каждые 30 секунд
+            setInterval(() => {
+                if (navigator.onLine) {
+                    loadNotifications();
+                }
+            }, 30000);
+            
+            // Обновление времени "последнего обновления"
+            setInterval(() => {
+                const timeElements = document.querySelectorAll('[data-last-update]');
+                timeElements.forEach(el => {
+                    const now = new Date();
+                    el.textContent = `Обновлено ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                });
+            }, 60000); // Каждую минуту
+        }
+
+        // Инициализация
+        setupRealTimeUpdates();
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
